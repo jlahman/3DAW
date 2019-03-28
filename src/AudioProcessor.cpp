@@ -140,10 +140,10 @@ public:
           index = 0;
           aziIndex = 0;
           timingCounter = 0;
-        	data = loadWAV("test.wav", channel, sampleRate, bps, size);
+        	data = loadWAV("../data/test.wav", channel, sampleRate, bps, size);
   		    mData = new int16_t[size/2];
 
-          hrir = new HRIR_Data("CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat",0,8);
+          hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat",0,8);
 
       		convDataSize = size/2 + 200 -1;
       		cData = new double[convDataSize];

@@ -12,7 +12,7 @@ HRIR_Data::HRIR_Data(std::string filepath, int azi, int ele){
 }
 
 void HRIR_Data::loadHRIRFromMAT(){
-	const char *filename = "CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
+	const char *filename = "../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
 	mat_t *matfp = NULL;
 	matvar_t *mvarLeft = NULL;
 	matvar_t *mvarRight = NULL;
@@ -55,7 +55,7 @@ void HRIR_Data::loadHRIRFromMAT(){
 }
 
 void HRIR_Data::loadITDFromMAT(){
-	const char *filename = "CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
+	const char *filename = "../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
 	mat_t *matfp = NULL;
 	matvar_t *mvarITD = NULL;
 
