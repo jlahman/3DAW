@@ -139,6 +139,8 @@ public:
           /* initialise variables */
           index = 0;
           aziIndex = 0;
+          eleIndex = 8;
+          inc = 1;
           timingCounter = 0;
         	data = loadWAV("../data/test.wav", channel, sampleRate, bps, size);
   		    mData = new int16_t[size/2];
@@ -277,8 +279,8 @@ private:
           }
         }
 
-        convolve(mDataChunk, framesPerBuffer - 199, hrir->hrir_l[aziIndex][8], 200, cData);
-        convolve(mDataChunk, framesPerBuffer - 199, hrir->hrir_r[aziIndex][8], 200, cDataR);
+        convolve(mDataChunk, framesPerBuffer - 199, hrir->hrir_l[aziIndex][eleIndex], 200, cData);
+        convolve(mDataChunk, framesPerBuffer - 199, hrir->hrir_r[aziIndex][eleIndex], 200, cDataR);
 
       //  convolve(mData, size/2, hrir->hrir_r[aziIndex][8], 200, cDataR);
 
@@ -291,10 +293,20 @@ private:
 
         }
 
-        aziIndex = aziIndex + 1;
+        aziIndex = aziIndex + inc;
         if(aziIndex == 25){
-          aziIndex = 0;
+        	aziIndex = 24;
+			inc = -1;
+          eleIndex = 41;
         }
+        if(aziIndex == -1){
+			inc = 1;
+			aziIndex = 0;
+          eleIndex = 8;
+        }
+        
+        
+        
         timingCounter = timingCounter + framesPerBuffer -199;
        // index = index + framesPerBuffer;
         (void) timeInfo; /* Prevent unused variable warnings. */
@@ -352,7 +364,7 @@ private:
     double* finalData;
     double* finalDataR;
    	size_t convDataSize;
-    int aziIndex;
+    int aziIndex, eleIndex, inc;
     int timingCounter;
     char message[20];
 
