@@ -1,31 +1,3 @@
-
-/*
- * $Id: paex_sine.c 1752 2011-09-08 03:21:55Z philburk $
- *
- * This program uses the PortAudio Portable Audio Library.
- * For more information see: http://www.portaudio.com/
- * Copyright (c) 1999-2000 Ross Bencina and Phil Burk
- *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files
- * (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge,
- * publish, distribute, sublicense, and/or sell copies of the Software,
- * and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
- * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
- * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 /*
 * Skeleton Example code was taken from paex_sine_c++.cpp
  */
@@ -38,6 +10,8 @@
 #include<portaudio.h>
 
 #include"HRIR_Data.h"
+#include"Tract.h"
+
 
 #define NUM_SECONDS   (5)
 
@@ -45,59 +19,7 @@
 #define FRAMES_PER_BUFFER  (64)
 
 
-
-bool isBigEndian()
-{
-    int a = 1;
-    return !((char*)&a)[0];
-}
-
-int convertToInt(char* buffer, int len)
-{
-    int a = 0;
-    if (!isBigEndian())
-        for (int i = 0; i<len; i++)
-            ((char*)&a)[i] = buffer[i];
-    else
-        for (int i = 0; i<len; i++)
-            ((char*)&a)[3 - i] = buffer[i];
-    return a;
-}
-
-
-char* loadWAV(const char* fn, int& chan, int& samplerate, int& bps, int& size)
-{
-    char buffer[4];
-    std::ifstream in(fn, std::ios::binary);
-    in.read(buffer, 4);
-    if (strncmp(buffer, "RIFF", 4) != 0)
-    {
-        std::cout << "this is not a valid WAVE file" << std::endl;
-        return NULL;
-    }
-    in.read(buffer, 4);
-    in.read(buffer, 4);      //WAVE
-    in.read(buffer, 4);      //fmt
-    in.read(buffer, 4);      //16
-
-    in.read(buffer, 2);      //1
-    in.read(buffer, 2);
-    chan = convertToInt(buffer, 2);
-    in.read(buffer, 4);
-    samplerate = convertToInt(buffer, 4);
-    in.read(buffer, 4);
-    in.read(buffer, 2);
-    in.read(buffer, 2);
-    bps = convertToInt(buffer, 2);
-    in.read(buffer, 4);      //data
-    in.read(buffer, 4);
-    size = convertToInt(buffer, 4);
-    char* data = new char[size];
-    in.read(data, size);
-    return data;
-}
-
-void convolve( int16_t Signal[/* SignalLen */], uint32_t SignalLen, double Kernel[/* KernelLen */], uint32_t KernelLen, double * output)
+void convolve( double* Signal, uint32_t SignalLen, double* Kernel, uint32_t KernelLen, double * output)
 {
 	//printf("asdf\n");
   uint32_t n;
@@ -117,7 +39,7 @@ void convolve( int16_t Signal[/* SignalLen */], uint32_t SignalLen, double Kerne
       output[n] += Signal[n - k] * Kernel[k];
     }
 
-    output[n] = output[n]/32768.0;
+    output[n] = output[n];
     if(output[n] > 1.0){
       output[n] = 1.0;
 
@@ -142,37 +64,25 @@ public:
           eleIndex = 8;
           inc = 1;
           timingCounter = 0;
-        	data = loadWAV("../data/test.wav", channel, sampleRate, bps, size);
-  		    mData = new int16_t[size/2];
+          test = new Tract("test.wav");
+
 
           hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat",0,8);
 
-      		convDataSize = size/2 + 200 -1;
+      		convDataSize = test->getLength() + 200 -1;
       		cData = new double[convDataSize];
       		cDataR = new double[convDataSize];
-      		for(int i = 0; i< size/2;i++){
-      		//std::cout << i <<"\tmdata = "<<mData[i]<< "\tmdata_after" << std::endl;
-      			char temp[2];
-      			temp[0] = data[i*2];
-      			temp[1] = data[i*2+1];
-      			mData[i] = (int16_t)convertToInt(temp,2);// 32768.0; std::cout << mData[i] << std::endl;
 
-      		}
 
-      		convolve(mData, size/2, hrir->hrir_l[4][8], 200, cData);
+      		convolve(*test->getData(), test->getLength(), hrir->hrir_l[4][8], 200, cData);
       		finalData = new double[convDataSize*2];
 
-      		convolve(mData, size/2, hrir->hrir_r[4][8], 200, cDataR);
+      		convolve(*test->getData(), test->getLength(), hrir->hrir_r[4][8], 200, cDataR);
       		finalDataR = new double[convDataSize*2];
 
       		for(int i = 0; i<convDataSize; i = i+1){
-      			/*uint16_t temph = (cData[i] & 0xff00);
-      			uint16_t templ = (cData[i] & 0x00ff);
-      			templ = templ << 8;
-      			templ = templ | ((temph >> 8 ) & 0x00ff);*/
       			finalData[i*2] = cData[i];
       			finalData[i*2 + 1] = cDataR[i];
-            //std::cout << i << "\t" << cData[i] << std::endl;
       		}
     }
 
@@ -264,25 +174,24 @@ private:
 
         //timingCounter = index;
 
-        printf("%d\t%d\t%d\t%d\n", aziIndex, timingCounter, index, size/2);
+        printf("%d\t%d\t%d\t%d\n", aziIndex, timingCounter, index, test->getLength());
         convDataSize = framesPerBuffer + 200 -1;
         cData = new double[convDataSize];
         cDataR = new double[convDataSize];
 
-        int16_t * mDataChunk = new int16_t[framesPerBuffer-199];
+        double * mDataChunk = new double[framesPerBuffer-199];
+        double * audioData = *test->getData();
         for(int i = 0; i< framesPerBuffer - 199; i++){
-          if(i+timingCounter < size/2){
-            mDataChunk[i] = mData[i+timingCounter];
+          if(i+timingCounter < test->getLength()){
+            mDataChunk[i] = audioData[i+timingCounter];
           }
           else{
             mDataChunk[i] = 0;
           }
         }
-
         convolve(mDataChunk, framesPerBuffer - 199, hrir->hrir_l[aziIndex][eleIndex], 200, cData);
         convolve(mDataChunk, framesPerBuffer - 199, hrir->hrir_r[aziIndex][eleIndex], 200, cDataR);
 
-      //  convolve(mData, size/2, hrir->hrir_r[aziIndex][8], 200, cDataR);
 
 
         for( i=0; i<framesPerBuffer; i++ )
@@ -304,9 +213,9 @@ private:
 			aziIndex = 0;
           eleIndex = 8;
         }
-        
-        
-        
+
+
+
         timingCounter = timingCounter + framesPerBuffer -199;
        // index = index + framesPerBuffer;
         (void) timeInfo; /* Prevent unused variable warnings. */
@@ -358,7 +267,6 @@ private:
     HRIR_Data *hrir;
     char* data;
     uint32_t index;
-    int16_t *mData;
     double* cData;
     double* cDataR;
     double* finalData;
@@ -367,6 +275,7 @@ private:
     int aziIndex, eleIndex, inc;
     int timingCounter;
     char message[20];
+    Tract * test;
 
 };
 
@@ -378,15 +287,7 @@ int main(int argc,  char * argv[])
     PaError err;
     AudioProcessor* ap;
 
-  /*  if( argc == 3) {
-      printf("halkdjsflkasjdflkjsdf\n");
-      int arg1, arg2;
-      arg1 = atoi(argv[1]);
-      arg2 = atoi(argv[2]);
-       ap = new AudioProcessor(arg1, arg2);
-    }
-    else*/
-         ap = new AudioProcessor(24, 8);
+   ap = new AudioProcessor(24, 8);
 
 
 
