@@ -12,7 +12,7 @@ extern "C" {
 
 
 Tract::Tract(std::string filepath){
-  filepath = filepath;
+  this->filepath = filepath;
   sampleRate = 44100;
   azimuth = 0.0;
   loadProperties();
@@ -42,7 +42,9 @@ int Tract::loadProperties(){
   //double* data;// data = malloc(2*sizeof(double));
 
   int * size = (int*)malloc(sizeof(int));
-  const char * url = "file:test.wav";
+  std::string prefix = "file:";
+  prefix = prefix + filepath;
+  const char * url = prefix.c_str();
   //register all av calls?
   av_register_all();
 

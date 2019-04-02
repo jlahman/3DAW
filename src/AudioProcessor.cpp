@@ -13,7 +13,7 @@
 #include"Tract.h"
 
 
-#define NUM_SECONDS   (5)
+#define NUM_SECONDS   (10)
 
 
 #define FRAMES_PER_BUFFER  (64)
@@ -64,25 +64,26 @@ public:
           eleIndex = 8;
           inc = 1;
           timingCounter = 0;
-          test = new Tract("test.wav");
+          test = new Tract("../data/Bee.mp3");
+          tract2 = new Tract("../data/test.wav");
 
 
           hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat",0,8);
 
-      		convDataSize = test->getLength() + 200 -1;
+      		convDataSize = tract2->getLength() + 200 -1;
       		cData = new double[convDataSize];
       		cDataR = new double[convDataSize];
 
 
-      		convolve(*test->getData(), test->getLength(), hrir->hrir_l[4][8], 200, cData);
-      		finalData = new double[convDataSize*2];
+      		convolve(*tract2->getData(), tract2->getLength(), hrir->hrir_l[16][8], 200, cData);
+      		finalData = new double[convDataSize];
 
-      		convolve(*test->getData(), test->getLength(), hrir->hrir_r[4][8], 200, cDataR);
-      		finalDataR = new double[convDataSize*2];
+      		convolve(*tract2->getData(), tract2->getLength(), hrir->hrir_r[16][8], 200, cDataR);
+      		finalDataR = new double[convDataSize];
 
       		for(int i = 0; i<convDataSize; i = i+1){
-      			finalData[i*2] = cData[i];
-      			finalData[i*2 + 1] = cDataR[i];
+      			finalData[i] = cData[i];
+      			finalDataR[i] = cDataR[i];
       		}
     }
 
@@ -181,9 +182,10 @@ private:
 
         double * mDataChunk = new double[framesPerBuffer-199];
         double * audioData = *test->getData();
+
         for(int i = 0; i< framesPerBuffer - 199; i++){
-          if(i+timingCounter < test->getLength()){
-            mDataChunk[i] = audioData[i+timingCounter];
+          if(i+(timingCounter%test->getLength()) < test->getLength()){
+            mDataChunk[i] = audioData[i+(timingCounter%test->getLength())];
           }
           else{
             mDataChunk[i] = 0;
@@ -196,8 +198,8 @@ private:
 
         for( i=0; i<framesPerBuffer; i++ )
         {
-            *out++ = cData[i] ;   /* left - distorted */
-            *out++ = cDataR[i] ;         /* right - clean */
+            *out++ = cData[i] + finalData[i+(timingCounter%tract2->getLength())] ;   /* left - distorted */
+            *out++ = cDataR[i] + finalDataR[i+(timingCounter%tract2->getLength())];         /* right - clean */
             index = index+1;
 
         }
@@ -276,6 +278,7 @@ private:
     int timingCounter;
     char message[20];
     Tract * test;
+    Tract * tract2;
 
 };
 
