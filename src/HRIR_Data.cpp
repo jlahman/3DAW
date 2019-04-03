@@ -2,17 +2,15 @@
 #include<matio.h>
 
 
-HRIR_Data::HRIR_Data(std::string filepath, int azi, int ele){
-  filepath = filepath;
-  azimuthIndex = azi;
-  elevationIndex = ele;
+HRIR_Data::HRIR_Data(std::string filepath){
+  this->filepath = filepath;
 
   loadITDFromMAT();
   loadHRIRFromMAT();
 }
 
 void HRIR_Data::loadHRIRFromMAT(){
-	const char *filename = "../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
+	const char *filename = filepath.c_str(); //"../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
 	mat_t *matfp = NULL;
 	matvar_t *mvarLeft = NULL;
 	matvar_t *mvarRight = NULL;
@@ -55,7 +53,7 @@ void HRIR_Data::loadHRIRFromMAT(){
 }
 
 void HRIR_Data::loadITDFromMAT(){
-	const char *filename = "../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
+	const char *filename = filepath.c_str();//"../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
 	mat_t *matfp = NULL;
 	matvar_t *mvarITD = NULL;
 
@@ -67,10 +65,10 @@ void HRIR_Data::loadITDFromMAT(){
 		const double *itdData = (const double*)(mvarITD->data);
 
 		if(mvarITD){
-			int y = elevationIndex;
+			//int y = elevationIndex;
 			//int x = elevationIndex;
-			int x = azimuthIndex;
-			int c = 25*y + x;
+			//int x = azimuthIndex;
+		//	int c = 25*y + x;
       for(int x = 0; x < 25; x++){
         for(int y = 0; y < 50; y++){
           // y = elevationIndex;

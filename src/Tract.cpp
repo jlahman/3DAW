@@ -11,9 +11,11 @@ extern "C" {
 
 
 
-Tract::Tract(std::string filepath){
+Tract::Tract(std::string filepath, std::string name){
   this->filepath = filepath;
+  this->name = name;
   sampleRate = 44100;
+  isLooping = false;
   azimuth = 0.0;
   loadProperties();
 }
@@ -139,7 +141,7 @@ int Tract::loadProperties(){
         response = avcodec_receive_frame(pCodecContext, pFrame);
         printf("response: %d\n", response);
 
-        if( response == AVERROR(EAGAIN) ||response == AVERROR_EOF){   printf("ERRORS\n");
+        if( response == AVERROR(EAGAIN) ||response == AVERROR_EOF){  // printf("ERRORS\n");
 
           break;
         } else if (response < 0){

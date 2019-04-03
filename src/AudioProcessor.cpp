@@ -2,12 +2,13 @@
 * Skeleton Example code was taken from paex_sine_c++.cpp
  */
 #include <stdio.h>
-
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <cstring>
 #include<matio.h>
 #include<portaudio.h>
+
 
 #include"HRIR_Data.h"
 #include"Tract.h"
@@ -18,13 +19,10 @@
 
 #define FRAMES_PER_BUFFER  (64)
 
-
+//TODO: move this to a util file
 void convolve( double* Signal, uint32_t SignalLen, double* Kernel, uint32_t KernelLen, double * output)
 {
-	//printf("asdf\n");
   uint32_t n;
-  //printf("asdf\n");
-	//std::cout << SignalLen + KernelLen - 1 << "   h||||||||||||||h   "<< SignalLen << std::endl;
   for (n = 0; n < SignalLen + KernelLen - 1; n++)
   {
     uint32_t kmin, kmax, k;
@@ -33,9 +31,9 @@ void convolve( double* Signal, uint32_t SignalLen, double* Kernel, uint32_t Kern
 
     kmin = (n >= SignalLen - 1) ? n - (SignalLen - 1) : 0;
     kmax = (n < KernelLen - 1) ? n : KernelLen - 1;
-	//std::cout<< n<< "\t" << kmin << "\t" << kmax <<std::endl;
+
     for (k = kmin; k <= kmax; k++)
-    { //if(n == 110916) std::cout << "\tk = " << k <<  "\toutput[60414] = " << output[n]<<std::endl;
+    {
       output[n] += Signal[n - k] * Kernel[k];
     }
 
@@ -47,16 +45,13 @@ void convolve( double* Signal, uint32_t SignalLen, double* Kernel, uint32_t Kern
     else if( output[n] < -1.0) {
       output[n] = -1.0;
     }
-   // if(n % 100 == 0)
-    	//std::cout<< output[n] << std::endl;
-    //output[n] = (uint16_t)((double)output[n]/32768.0);
   }
 }
 
 class AudioProcessor
 {
 public:
-      AudioProcessor( int azimuthIndex, int elevationIndex)
+      AudioProcessor()
       {
           /* initialise variables */
           index = 0;
@@ -64,21 +59,23 @@ public:
           eleIndex = 8;
           inc = 1;
           timingCounter = 0;
-          test = new Tract("../data/Bee.mp3");
-          tract2 = new Tract("../data/test.wav");
+          trackList.push_back(new Tract("../data/Bee.mp3", "Bee"));
+          trackList.push_back(new Tract("../data/test.wav", "Waterfall"));
+
+          //tract2 = new Tract("../data/Bee.mp3", "Bees");
 
 
-          hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat",0,8);
+          hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_162/hrir_final.mat");
 
-      		convDataSize = tract2->getLength() + 200 -1;
+      		convDataSize = trackList[1]->getLength() + 200 -1;
       		cData = new double[convDataSize];
       		cDataR = new double[convDataSize];
 
 
-      		convolve(*tract2->getData(), tract2->getLength(), hrir->hrir_l[16][8], 200, cData);
+      		convolve(*trackList[1]->getData(), trackList[1]->getLength(), hrir->hrir_l[16][8], 200, cData);
       		finalData = new double[convDataSize];
 
-      		convolve(*tract2->getData(), tract2->getLength(), hrir->hrir_r[16][8], 200, cDataR);
+      		convolve(*trackList[1]->getData(), trackList[1]->getLength(), hrir->hrir_r[16][8], 200, cDataR);
       		finalDataR = new double[convDataSize];
 
       		for(int i = 0; i<convDataSize; i = i+1){
@@ -97,7 +94,7 @@ public:
         }
 
         outputParameters.channelCount = 2;       /* stereo output */
-        outputParameters.sampleFormat = paFloat32;//paInt16; /* 16 bit int output */
+        outputParameters.sampleFormat = paFloat32;  //paInt16; /* 32 bit float output */
         outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
         outputParameters.hostApiSpecificStreamInfo = NULL;
 
@@ -175,17 +172,17 @@ private:
 
         //timingCounter = index;
 
-        printf("%d\t%d\t%d\t%d\n", aziIndex, timingCounter, index, test->getLength());
+      //  printf("%d\t%d\t%d\t%d\n", aziIndex, timingCounter, index, test->getLength());
         convDataSize = framesPerBuffer + 200 -1;
         cData = new double[convDataSize];
         cDataR = new double[convDataSize];
 
         double * mDataChunk = new double[framesPerBuffer-199];
-        double * audioData = *test->getData();
+        double * audioData = *trackList[0]->getData();
 
         for(int i = 0; i< framesPerBuffer - 199; i++){
-          if(i+(timingCounter%test->getLength()) < test->getLength()){
-            mDataChunk[i] = audioData[i+(timingCounter%test->getLength())];
+          if(i+(timingCounter%trackList[0]->getLength()) < trackList[0]->getLength()){
+            mDataChunk[i] = audioData[i+(timingCounter%trackList[0]->getLength())];
           }
           else{
             mDataChunk[i] = 0;
@@ -198,8 +195,8 @@ private:
 
         for( i=0; i<framesPerBuffer; i++ )
         {
-            *out++ = cData[i] + finalData[i+(timingCounter%tract2->getLength())] ;   /* left - distorted */
-            *out++ = cDataR[i] + finalDataR[i+(timingCounter%tract2->getLength())];         /* right - clean */
+            *out++ = cData[i] + finalData[i+(timingCounter%trackList[1]->getLength())] ;   /* left - distorted */
+            *out++ = cDataR[i] + finalDataR[i+(timingCounter%trackList[1]->getLength())];         /* right - clean */
             index = index+1;
 
         }
@@ -207,12 +204,12 @@ private:
         aziIndex = aziIndex + inc;
         if(aziIndex == 25){
         	aziIndex = 24;
-			inc = -1;
-          eleIndex = 41;
+			    inc = -1;
+          eleIndex = 40;
         }
         if(aziIndex == -1){
-			inc = 1;
-			aziIndex = 0;
+			    inc = 1;
+			    aziIndex = 0;
           eleIndex = 8;
         }
 
@@ -252,7 +249,7 @@ private:
 
     void paStreamFinishedMethod()
     {
-        printf( "Stream Completed: %s\n", message );
+        printf( "Stream Completed\n" );
     }
 
     /*
@@ -279,6 +276,7 @@ private:
     char message[20];
     Tract * test;
     Tract * tract2;
+    std::vector<Tract*> trackList;
 
 };
 
@@ -290,9 +288,7 @@ int main(int argc,  char * argv[])
     PaError err;
     AudioProcessor* ap;
 
-   ap = new AudioProcessor(24, 8);
-
-
+   ap = new AudioProcessor();
 
     printf("PortAudio Test\n");
 

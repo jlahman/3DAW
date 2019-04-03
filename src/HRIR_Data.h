@@ -5,9 +5,8 @@
 class HRIR_Data {
   //member variables
   public:
-   HRIR_Data(std::string filepath, int azi, int ele);
-   int azimuthIndex, elevationIndex;
-
+   HRIR_Data(std::string filepath);
+   
    double hrir_l[25][50][200];
    double hrir_r[25][50][200];
    double itd[25][50];
