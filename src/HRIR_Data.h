@@ -6,7 +6,9 @@ class HRIR_Data {
   //member variables
   public:
    HRIR_Data(std::string filepath);
-   
+   int * getIndices(double azimuth, double elevation);
+   double azimuths[25];
+   double elevations[50];
    double hrir_l[25][50][200];
    double hrir_r[25][50][200];
    double itd[25][50];
@@ -14,7 +16,8 @@ class HRIR_Data {
 
   private:
    std::string filepath;
-
+   double findClosestWeightedIndex(double * arr, int legnth, double value);
+   void initAngles();
    void loadHRIRFromMAT();
    void loadITDFromMAT();
 };

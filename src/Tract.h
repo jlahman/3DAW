@@ -7,12 +7,13 @@ class Tract {
   //TODO: make a struct for tract properties? need easy access to edit any properties
   //Just make track a data structure? no operations?
   public:
-   Tract(std::string filepath, std::string name);
+   Tract(std::string filepath, std::string name, double azimuth);
    int getSampleRate();
    int getLength();
    double getAzimuth();
    void setAzimuth(double azimuth);
    double* * getData();
+   bool isLooping();
 
 
   private:
@@ -22,7 +23,7 @@ class Tract {
    int sampleRate;
    int length;
    double azimuth, radius;
-   bool isLooping;
+   bool looping;
 
    int loadProperties();
 };

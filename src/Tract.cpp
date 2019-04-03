@@ -11,12 +11,12 @@ extern "C" {
 
 
 
-Tract::Tract(std::string filepath, std::string name){
+Tract::Tract(std::string filepath, std::string name, double azimuth){
   this->filepath = filepath;
   this->name = name;
   sampleRate = 44100;
-  isLooping = false;
-  azimuth = 0.0;
+  looping = true;
+  this->azimuth = azimuth;
   loadProperties();
 }
 
@@ -37,11 +37,14 @@ double Tract::getAzimuth(){
 }
 
 void Tract::setAzimuth(double azimuth){
-  azimuth = azimuth;
+  this->azimuth = azimuth;
 }
 
+bool Tract::isLooping(){
+  return looping;
+}
+//TODO: Move this to a util file probably
 int Tract::loadProperties(){
-  //double* data;// data = malloc(2*sizeof(double));
 
   int * size = (int*)malloc(sizeof(int));
   std::string prefix = "file:";
