@@ -128,7 +128,7 @@ private:
 
         //double bufferLeft[framesPerBuffer];
         //double bufferRight[framesPerBuffer];
-        const int frames = framesPerBuffer;
+        
         double **buffer = new double*[2];
         buffer[0] = new double[FRAMES_PER_BUFFER];
         buffer[1] = new double[FRAMES_PER_BUFFER];

@@ -5,7 +5,6 @@
 
 AnimationPlayer::AnimationPlayer(std::string filepath){
   hrir = new HRIR_Data(filepath);
-
 }
 
 void AnimationPlayer::addSource(std::string sourceName, Track * track){
@@ -14,7 +13,7 @@ void AnimationPlayer::addSource(std::string sourceName, Track * track){
 
 void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
   int convDataSize = length;
-  int sourceChunkSize = length + 200 - 1;
+  int sourceChunkSize = length - 200 + 1;
 
   double * mDataChunk = new double[sourceChunkSize];
   double * audioData;
@@ -45,6 +44,12 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
 
     Point3D *p = (*source)->getProperties()->position;
     double azimuth = atan2(p->x, p->y);
+    //azimuth = azimuth * 180 / 3.14159265;
+    azimuth = azimuth + 3.14159265 + 3.14159265/20.0;
+    azimuth = fmod(azimuth, 2*3.14159265);
+    azimuth = azimuth - 3.14159265;
+    p->x = sin(azimuth);
+    p->y = cos(azimuth);
     azimuth = azimuth * 180 / 3.14159265;
 
     int aziIndex = hrir->getIndices(azimuth, 0)[0];
@@ -53,10 +58,11 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
     convolve(mDataChunk, sourceChunkSize, hrir->hrir_r[aziIndex][eleIndex], 200, convDataR);
 
     for(int i =0; i< length; i++){
-      buffer[0][i] += cData[i];
-      buffer[1][i] += cDataR[i];
+      buffer[0][i] += convDataL[i];
+      buffer[1][i] += convDataR[i];
       //printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 
     }
+
   }
 }
