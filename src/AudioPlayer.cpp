@@ -33,9 +33,10 @@ public:
           timingCounter = 0;
           trackList.push_back(new Track("../data/Bee.mp3"));
           trackList.push_back(new Track("../data/test.wav"));
-          anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat");
+          anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_011/hrir_final.mat");
           //anime->addSource("Bee", trackList[0]);
           anime->addSource("Waterfall", trackList[1]);
+          anime->setStartTime("Waterfall", 3.0);
           //hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_162/hrir_final.mat");
 
     }
@@ -128,12 +129,13 @@ private:
 
         //double bufferLeft[framesPerBuffer];
         //double bufferRight[framesPerBuffer];
-        
+
         double **buffer = new double*[2];
         buffer[0] = new double[FRAMES_PER_BUFFER];
         buffer[1] = new double[FRAMES_PER_BUFFER];
 
         anime->getBuffer(buffer, timingCounter, framesPerBuffer);
+
 
         for( i=0; i<framesPerBuffer; i++ )
         {
@@ -148,6 +150,7 @@ private:
         trackList[0]->setAzimuth(newAzi);*/
 
         timingCounter = timingCounter + framesPerBuffer -199;
+        printf("%E\n", timingCounter/44100.0);
        // index = index + framesPerBuffer;
         (void) timeInfo; /* Prevent unused variable warnings. */
         (void) statusFlags;

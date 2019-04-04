@@ -15,7 +15,6 @@ Track::Track(std::string filepath, std::string name){
   loadProperties();
 }
 
-//TODO: Move this to a util file probably
 int Track::loadProperties(){
   sampleRate = 44100;
   loadAudioData(filepath, sampleRate, 1, &data, &length);

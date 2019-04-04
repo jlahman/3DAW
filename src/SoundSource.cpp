@@ -42,12 +42,16 @@ double SoundSource::getStartTime(){
   return startTime_s;
 }
 
+std::string SoundSource::getName(){
+  return name;
+}
+
 void SoundSource::initProperties(){
-  properties = new SoundSourceProperties(new Point3D(0.70710678118, 0.70710678118, 0.0), true, true);
+  properties = new SoundSourceProperties(new Polar3D(1.0, 0.0, 0.0), true, true);
 }
 
 
-SoundSourceProperties::SoundSourceProperties(Point3D * p, bool looping, bool visible){
+SoundSourceProperties::SoundSourceProperties(Polar3D * p, bool looping, bool visible){
   this->position = p;
   this->isLooping = looping;
   this->isVisible = visible;

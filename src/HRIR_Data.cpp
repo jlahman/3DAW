@@ -101,7 +101,7 @@ int* HRIR_Data::getIndices(double azi, double ele){
   //TODO: Figure out how to convert from interaural-polar coordinate system
   //      to vertical-polar coordinates.
   //conversely, we could use xyz as inputs from track data, instead of polar coords
-  e = 8; // horizontal plane
+  e = 8; // horizontal plane, front
   if(azi > 90){
     azi = 90 - (azi - 90);
     ele = ele + 180;
@@ -124,8 +124,7 @@ double HRIR_Data::findClosestWeightedIndex(double *arr, int length, double value
   bool done = false;
   while(index_o < index_f){
     int half = (index_f + index_o)/2;
-    //base case - assumes value is in array,
-    //printf("%d\t%d\n", half, (int)value );
+    //base cases
     if(arr[half] == value){
       return (double)half;
     }

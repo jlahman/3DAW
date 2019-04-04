@@ -7,8 +7,8 @@
 
 struct SoundSourceProperties {
   public:
-   SoundSourceProperties(Point3D * p, bool loop, bool visible);
-   Point3D * position;
+   SoundSourceProperties(Polar3D * p, bool loop, bool visible);
+   Polar3D * position;
    bool isLooping;
    bool isVisible;
 };
@@ -30,6 +30,7 @@ class SoundSource {
    double * getAudioData();
    int getLength();
 
+   std::string getName();
   private:
    //Fields
    Track *track;
