@@ -133,9 +133,6 @@ private:
         buffer[0] = new double[FRAMES_PER_BUFFER];
         buffer[1] = new double[FRAMES_PER_BUFFER];
 
-        //TODO: this has more parameters than i'd like, need to clean it up when moving it to a different class
-        //processFrame(bufferLeft, bufferRight, timingCounter, framesPerBuffer, trackList);
-
         anime->getBuffer(buffer, timingCounter, framesPerBuffer);
 
         for( i=0; i<framesPerBuffer; i++ )

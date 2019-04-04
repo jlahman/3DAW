@@ -1,6 +1,6 @@
 #include<iostream>
-#include"AnimationPlayer.h"
 #include<cmath>
+#include"AnimationPlayer.h"
 #include"util.h"
 
 AnimationPlayer::AnimationPlayer(std::string filepath){
@@ -13,12 +13,14 @@ void AnimationPlayer::addSource(std::string sourceName, Track * track){
 }
 
 void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
-  double * mDataChunk = new double[length-199];
+  int convDataSize = length;
+  int sourceChunkSize = length + 200 - 1;
+
+  double * mDataChunk = new double[sourceChunkSize];
   double * audioData;
 
-  int convDataSize = length;
-  double * cData = new double[convDataSize];
-  double * cDataR = new double[convDataSize];
+  double * convDataL = new double[convDataSize];
+  double * convDataR = new double[convDataSize];
 
   for(int i =0; i< length; i++){
     buffer[0][i] = 0;
@@ -27,7 +29,7 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
 
   for(std::vector<SoundSource*>::iterator source = sourceList.begin(); source != sourceList.end(); source++){
     audioData = (*source)->getAudioData();
-    for(int i = 0; i < length - 199; i++){
+    for(int i = 0; i < sourceChunkSize; i++){
 
       if((*source)->getProperties()->isLooping){
         mDataChunk[i] = audioData[(i+frameStart)%(*source)->getLength()];
@@ -40,15 +42,15 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
         }
       }
     }
+
     Point3D *p = (*source)->getProperties()->position;
     double azimuth = atan2(p->x, p->y);
     azimuth = azimuth * 180 / 3.14159265;
-    //printf("%E\n", azimuth);
 
     int aziIndex = hrir->getIndices(azimuth, 0)[0];
     int eleIndex = hrir->getIndices(azimuth, 0)[1];
-    convolve(mDataChunk, length - 199, hrir->hrir_l[aziIndex][eleIndex], 200, cData);
-    convolve(mDataChunk, length - 199, hrir->hrir_r[aziIndex][eleIndex], 200, cDataR);
+    convolve(mDataChunk, sourceChunkSize, hrir->hrir_l[aziIndex][eleIndex], 200, convDataL);
+    convolve(mDataChunk, sourceChunkSize, hrir->hrir_r[aziIndex][eleIndex], 200, convDataR);
 
     for(int i =0; i< length; i++){
       buffer[0][i] += cData[i];

@@ -1,8 +1,7 @@
-#include"Track.h"
-#include"util.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include"Track.h"
+#include"util.h"
 
 Track::Track(std::string filepath){
   this->filepath = filepath;
