@@ -24,10 +24,10 @@
 
 #define FRAMES_PER_BUFFER  (2048) //needs to be at least 201 for no errors: 2048 seems to be as low as we can go rn
 
-class AudioProcessor
+class AudioPlayer
 {
 public:
-      AudioProcessor()
+      AudioPlayer()
       {
           /* initialise variables */
           timingCounter = 0;
@@ -61,7 +61,7 @@ public:
             44100,
             FRAMES_PER_BUFFER,//22050/8,
             paNoFlag,
-            &AudioProcessor::paCallback,
+            &AudioPlayer::paCallback,
             this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
             );
 
@@ -71,7 +71,7 @@ public:
             return false;
         }
 
-        err = Pa_SetStreamFinishedCallback( stream, &AudioProcessor::paStreamFinished );
+        err = Pa_SetStreamFinishedCallback( stream, &AudioPlayer::paStreamFinished );
 
         if (err != paNoError)
         {
@@ -174,7 +174,7 @@ private:
            we called Pa_OpenStream with 'this' for userData */
 
 
-        return ((AudioProcessor*)userData)->paCallbackMethod(inputBuffer, outputBuffer,
+        return ((AudioPlayer*)userData)->paCallbackMethod(inputBuffer, outputBuffer,
             framesPerBuffer,
             timeInfo,
             statusFlags);
@@ -192,7 +192,7 @@ private:
      */
     static void paStreamFinished(void* userData)
     {
-        return ((AudioProcessor*)userData)->paStreamFinishedMethod();
+        return ((AudioPlayer*)userData)->paStreamFinishedMethod();
     }
 
 
@@ -210,9 +210,9 @@ private:
 int main(int argc,  char * argv[])
 {
     PaError err;
-    AudioProcessor* ap;
+    AudioPlayer* ap;
 
-   ap = new AudioProcessor();
+   ap = new AudioPlayer();
 
     printf("PortAudio Test\n");
 

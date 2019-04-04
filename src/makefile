@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=
 DEPS = HRIR_Data.h util.h AnimationPlayer.h SoundSource.h Track.h
-OBJ = util.o HRIR_Data.o Track.o SoundSource.o AnimationPlayer.o AudioProcessor.o
+OBJ = util.o HRIR_Data.o Track.o SoundSource.o AnimationPlayer.o AudioPlayer.o
 LIBS= -lavformat -lavcodec -lswresample -lavutil -lportaudio -lmatio -lstdc++ -lm
 
 %.o: %.c $(DEPS)
