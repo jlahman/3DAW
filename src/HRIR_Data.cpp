@@ -19,9 +19,7 @@ void HRIR_Data::initAngles(){
   for(int i = 3; i < 22; i++){
     azimuths[i] = -45 + 5*(i-3);
   }
-  /*for(int i = 0; i < 25; i++){
-    printf("\t%d\n", (int)azimuths[i] );
-  }*/
+
   for(int i = 0; i < 50; i++){
     elevations[i] = -45 + 5.625*i;
   }
@@ -29,7 +27,7 @@ void HRIR_Data::initAngles(){
 
 
 void HRIR_Data::loadHRIRFromMAT(){
-	const char *filename = filepath.c_str(); //"../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
+	const char *filename = filepath.c_str();
 	mat_t *matfp = NULL;
 	matvar_t *mvarLeft = NULL;
 	matvar_t *mvarRight = NULL;
@@ -47,14 +45,11 @@ void HRIR_Data::loadHRIRFromMAT(){
 		if(mvarLeft && mvarRight){
       for(int x = 0; x < 25; x++){
         for(int y = 0; y < 50; y++){
-    			// y = elevationIndex;
-    			//x = azimuthIndex;
     			int skip = 25*50;
     			int c = 25*y + x;
     			for(int i = 0; i < 200; i++){
     				hrir_l[x][y][i] = lData[c+ skip*i];
     				hrir_r[x][y][i] = rData[c+ skip*i];
-    				//printf("%E\t", hrir[0][i]); 				printf("%d\t%d\n", (c + skip*i), i);
 
     			}
         }
@@ -81,18 +76,10 @@ void HRIR_Data::loadITDFromMAT(){
 		const double *itdData = (const double*)(mvarITD->data);
 
 		if(mvarITD){
-			//int y = elevationIndex;
-			//int x = elevationIndex;
-			//int x = azimuthIndex;
-		//	int c = 25*y + x;
       for(int x = 0; x < 25; x++){
         for(int y = 0; y < 50; y++){
-          // y = elevationIndex;
-          //x = azimuthIndex;
-          int skip = 25*50;
           int c = 25*y + x;
           itd[x][y] = itdData[c];
-          //printf("%E\t", hrir[0][i]); 				printf("%d\t%d\n", (c + skip*i), i);
         }
       }
 		}

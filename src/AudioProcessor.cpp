@@ -1,8 +1,8 @@
 /*
 * Skeleton Example code was taken from paex_sine_c++.cpp
-TODO: should this be purely an audio player? Take out all data processing and put that in a seperate class?
-      How to get the final buffer data to the audio player?
-      If not realtime could have a function to change pointer to data? would realtime make be any different?
+  TODO: should this be purely an audio player? Take out all data processing and put that in a seperate class?
+        How to get the final buffer data to the audio player?
+        If not realtime could have a function to change pointer to data? would realtime make be any different?
  */
 #include <stdio.h>
 #include <iostream>
@@ -15,42 +15,16 @@ TODO: should this be purely an audio player? Take out all data processing and pu
 
 
 #include"HRIR_Data.h"
-#include"Tract.h"
+#include"Track.h"
+#include"util.h"
+#include"AnimationPlayer.h"
+
 
 
 #define NUM_SECONDS   (10)
 
 
-#define FRAMES_PER_BUFFER  (64)
-
-//TODO: move this to a util file
-void convolve( double* Signal, uint32_t SignalLen, double* Kernel, uint32_t KernelLen, double * output)
-{
-  uint32_t n;
-  for (n = 0; n < SignalLen + KernelLen - 1; n++)
-  {
-    uint32_t kmin, kmax, k;
-
-    output[n] = 0;
-
-    kmin = (n >= SignalLen - 1) ? n - (SignalLen - 1) : 0;
-    kmax = (n < KernelLen - 1) ? n : KernelLen - 1;
-
-    for (k = kmin; k <= kmax; k++)
-    {
-      output[n] += Signal[n - k] * Kernel[k];
-    }
-
-    output[n] = output[n];
-    if(output[n] > 1.0){
-      output[n] = 1.0;
-
-    }
-    else if( output[n] < -1.0) {
-      output[n] = -1.0;
-    }
-  }
-}
+#define FRAMES_PER_BUFFER  (2048) //needs to be at least 201 for no errors: 2048 seems to be as low as we can go rn
 
 class AudioProcessor
 {
@@ -58,31 +32,14 @@ public:
       AudioProcessor()
       {
           /* initialise variables */
-          index = 0;
-          aziIndex = 0;
-          eleIndex = 8;
-          inc = 1;
           timingCounter = 0;
-          trackList.push_back(new Tract("../data/Bee.mp3", "Bee", -90.0));
-          trackList.push_back(new Tract("../data/test.wav", "Waterfall", 45.0));
+          trackList.push_back(new Track("../data/Bee.mp3"));
+          trackList.push_back(new Track("../data/test.wav"));
+          anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat");
+          //anime->addSource("Bee", trackList[0]);
+          anime->addSource("Waterfall", trackList[1]);
+          //hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_162/hrir_final.mat");
 
-          hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_162/hrir_final.mat");
-
-      		convDataSize = trackList[1]->getLength() + 200 -1;
-      		cData = new double[convDataSize];
-      		cDataR = new double[convDataSize];
-
-
-      		convolve(*trackList[1]->getData(), trackList[1]->getLength(), hrir->hrir_l[16][8], 200, cData);
-      		finalData = new double[convDataSize];
-
-      		convolve(*trackList[1]->getData(), trackList[1]->getLength(), hrir->hrir_r[16][8], 200, cDataR);
-      		finalDataR = new double[convDataSize];
-
-      		for(int i = 0; i<convDataSize; i = i+1){
-      			finalData[i] = cData[i];
-      			finalDataR[i] = cDataR[i];
-      		}
     }
 
     bool open(PaDeviceIndex indexx)
@@ -104,7 +61,7 @@ public:
             NULL, /* no input */
             &outputParameters,
             44100,
-            22050/8,
+            FRAMES_PER_BUFFER,//22050/8,
             paNoFlag,      /* we won't output out of range samples so don't bother clipping them */
             &AudioProcessor::paCallback,
             this            /* Using 'this' for userData so we can cast to Sine* in paCallback method */
@@ -171,22 +128,29 @@ private:
         unsigned long i;
         float* out = (float *) outputBuffer;
 
-        double bufferLeft[framesPerBuffer];
-        double bufferRight[framesPerBuffer];
+        //double bufferLeft[framesPerBuffer];
+        //double bufferRight[framesPerBuffer];
+        const int frames = framesPerBuffer;
+        double **buffer = new double*[2];
+        buffer[0] = new double[FRAMES_PER_BUFFER];
+        buffer[1] = new double[FRAMES_PER_BUFFER];
+
         //TODO: this has more parameters than i'd like, need to clean it up when moving it to a different class
-        processFrame(bufferLeft, bufferRight, timingCounter, framesPerBuffer, trackList);
+        //processFrame(bufferLeft, bufferRight, timingCounter, framesPerBuffer, trackList);
+
+        anime->getBuffer(buffer, timingCounter, framesPerBuffer);
 
         for( i=0; i<framesPerBuffer; i++ )
         {
-            *out++ = bufferLeft[i];
-            *out++ = bufferRight[i];
+            *out++ = buffer[0][i];
+            *out++ = buffer[1][i];
         }
 
         //Just to keep circling while animation player is WIP
-        double newAzi = trackList[0]->getAzimuth() + 180 + 5;
+        /*double newAzi = trackList[0]->getAzimuth() + 180 + 5;
         newAzi = fmod(newAzi, 360);
         newAzi -= 180;
-        trackList[0]->setAzimuth(newAzi);
+        trackList[0]->setAzimuth(newAzi);*/
 
         timingCounter = timingCounter + framesPerBuffer -199;
        // index = index + framesPerBuffer;
@@ -233,72 +197,18 @@ private:
         return ((AudioProcessor*)userData)->paStreamFinishedMethod();
     }
 
-    void processFrame(double * bufL, double * bufR, int counter, int framesPerBuffer, std::vector<Tract*> tracks){
-      double * mDataChunk = new double[framesPerBuffer-199];
-      double * audioData;// = *trackList[0]->getData();
-
-      convDataSize = framesPerBuffer;
-      cData = new double[convDataSize];
-      cDataR = new double[convDataSize];
-
-      for(int i =0; i< framesPerBuffer; i++){
-        bufL[i] = 0;
-        bufR[i] = 0;
-      }
-
-      for(std::vector<Tract*>::iterator track = tracks.begin(); track != tracks.end(); track++){
-        audioData = *(*track)->getData();
-        for(int i = 0; i < framesPerBuffer - 199; i++){
-
-          if((*track)->isLooping()){
-            mDataChunk[i] = audioData[(i+counter)%(*track)->getLength()];
-          }
-          else {
-            if(i + counter >= (*track)->getLength()){
-              mDataChunk[i] = 0;
-            } else{
-              mDataChunk[i] = audioData[i+counter];
-            }
-          }
-        }
-        int aziIndex = hrir->getIndices((*track)->getAzimuth(), 0)[0];
-        int eleIndex = hrir->getIndices((*track)->getAzimuth(), 0)[1];
-        convolve(mDataChunk, framesPerBuffer - 199, hrir->hrir_l[aziIndex][eleIndex], 200, cData);
-        convolve(mDataChunk, framesPerBuffer - 199, hrir->hrir_r[aziIndex][eleIndex], 200, cDataR);
-
-        for(int i =0; i< framesPerBuffer; i++){
-          bufL[i] += cData[i];
-          bufR[i] += cDataR[i];
-        }
-
-      }
-    }
-
-
 
     PaStream *stream;
-
-    int channel, sampleRate, bps, size;
-    HRIR_Data *hrir;
-    char* data;
-    uint32_t index;
-    double* cData;
-    double* cDataR;
-    double* finalData;
-    double* finalDataR;
-   	size_t convDataSize;
-    int aziIndex, eleIndex, inc;
+    AnimationPlayer * anime;
+    //HRIR_Data *hrir;
     int timingCounter;
     char message[20];
-    Tract * test;
-    Tract * tract2;
-    std::vector<Tract*> trackList;
+    std::vector<Track*> trackList;
 
 };
 
 
 /*******************************************************************/
-int main( int argc,  char*  argv[]);
 int main(int argc,  char * argv[])
 {
     PaError err;
@@ -315,7 +225,7 @@ int main(int argc,  char * argv[])
     {
         if (ap->start())
         {
-            printf("Play for %d seconds.\n", NUM_SECONDS );        printf("I wub hate this\n" );
+            printf("Play for %d seconds.\n", NUM_SECONDS );
 
             Pa_Sleep( NUM_SECONDS * 1000 );
 
