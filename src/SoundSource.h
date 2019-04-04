@@ -38,9 +38,6 @@ class SoundSource {
    SoundSourceProperties *properties;
 
    //Functions
-
-
-
    void initProperties();
 
 };

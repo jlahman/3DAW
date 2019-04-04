@@ -5,13 +5,7 @@
 #include <stdlib.h>
 #include<iostream>
 
-extern "C" {
-  #include<libavutil/opt.h>
-  #include<libavformat/avformat.h>
-  #include<libavcodec/avcodec.h>
-  #include <libswresample/swresample.h>
-}
-
+//TODO: add a function to convert to polar coords?
 struct Point3D {
   public:
    Point3D(double x, double y, double z){

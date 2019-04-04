@@ -1,5 +1,12 @@
 #include"util.h"
 
+extern "C" {
+  #include<libavutil/opt.h>
+  #include<libavformat/avformat.h>
+  #include<libavcodec/avcodec.h>
+  #include <libswresample/swresample.h>
+}
+
 void convolve( double* Signal, uint32_t SignalLen, double* Kernel, uint32_t KernelLen, double * output)
 {
   uint32_t n;

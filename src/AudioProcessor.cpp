@@ -19,8 +19,6 @@
 #include"util.h"
 #include"AnimationPlayer.h"
 
-
-
 #define NUM_SECONDS   (10)
 
 
@@ -62,9 +60,9 @@ public:
             &outputParameters,
             44100,
             FRAMES_PER_BUFFER,//22050/8,
-            paNoFlag,      /* we won't output out of range samples so don't bother clipping them */
+            paNoFlag,
             &AudioProcessor::paCallback,
-            this            /* Using 'this' for userData so we can cast to Sine* in paCallback method */
+            this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
             );
 
         if (err != paNoError)
