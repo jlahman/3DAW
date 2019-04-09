@@ -9,6 +9,7 @@ struct SoundSourceProperties {
   public:
    SoundSourceProperties(Polar3D * p, bool loop, bool visible);
    Polar3D * position;
+   double scale;
    bool isLooping;
    bool isVisible;
 };

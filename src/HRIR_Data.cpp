@@ -1,5 +1,6 @@
 #include<matio.h>
 #include"HRIR_Data.h"
+#include"util.h"
 
 
 
@@ -8,16 +9,19 @@ HRIR_Data::HRIR_Data(std::string filepath){
   initAngles();
   loadITDFromMAT();
   loadHRIRFromMAT();
+  genPIHRIR();
 }
 
 void HRIR_Data::initAngles(){
-  azimuths[0] =  -80.0;
-  azimuths[24] = 80.0;
-  azimuths[1] = -65.0;
-  azimuths[23] = 65.0;
-  azimuths[2] =  -55.0;
-  azimuths[22] = 55.0;
-  for(int i = 3; i < 22; i++){
+  azimuths[0] =  -90.0;
+  azimuths[26] = 90.0;
+  azimuths[1] =  -80.0;
+  azimuths[25] = 80.0;
+  azimuths[2] = -65.0;
+  azimuths[24] = 65.0;
+  azimuths[3] =  -55.0;
+  azimuths[23] = 55.0;
+  for(int i = 4; i < 23; i++){
     azimuths[i] = -45 + 5*(i-3);
   }
 
@@ -49,8 +53,8 @@ void HRIR_Data::loadHRIRFromMAT(){
     			int skip = 25*50;
     			int c = 25*y + x;
     			for(int i = 0; i < 200; i++){
-    				hrir_l[x][y][i] = lData[c+ skip*i];
-    				hrir_r[x][y][i] = rData[c+ skip*i];
+    				hrir_l[x+1][y][i] = lData[c+ skip*i];
+    				hrir_r[x+1][y][i] = rData[c+ skip*i];
 
     			}
         }
@@ -63,6 +67,17 @@ void HRIR_Data::loadHRIRFromMAT(){
 	else {
 		fprintf(stdout, "ERROR: Matfile load error");
 	}
+}
+
+void HRIR_Data::genPIHRIR(){
+  for(int e = 0; e < 50; e++){
+    for(int i = 0; i < 200; i++){
+        hrir_l[0][e][i] = lerp(hrir_l[1][8][i], hrir_l[1][40][i], 0.5, 0, 1);
+        hrir_l[26][e][i] = lerp(hrir_l[25][8][i], hrir_l[25][40][i], 0.5, 0, 1);
+        hrir_r[0][e][i] = lerp(hrir_r[1][8][i], hrir_r[1][40][i], 0.5, 0, 1);
+        hrir_r[26][e][i] = lerp(hrir_r[25][8][i], hrir_r[25][40][i], 0.5, 0, 1);
+    }
+  }
 }
 
 void HRIR_Data::loadITDFromMAT(){
@@ -94,9 +109,9 @@ void HRIR_Data::loadITDFromMAT(){
 }
 
 //This only returns the proper horizontal plane index, elevation is wonky
-int* HRIR_Data::getIndices(double azi, double ele){
-  int a, e;
-  int *ret =  new int[2];
+double* HRIR_Data::getIndices(double azi, double ele){
+  double a, e;
+  double *ret =  new double[2];
 
   //TODO: Figure out how to convert from interaural-polar coordinate system
   //      to vertical-polar coordinates.
@@ -111,7 +126,13 @@ int* HRIR_Data::getIndices(double azi, double ele){
     ele = ele + 180;
     e = 40;// horizontal plane, back
   }
-  a = (int)findClosestWeightedIndex(azimuths, 25, azi);
+//  if(azi < -80){
+//    a = lerp(-1, 0, abs(azi), -80, -90);
+//  } else if(azi > 80) {
+//    a = lerp(24, 25, abs(azi), 80, 90);
+//  }else {
+    a = findClosestWeightedIndex(azimuths, 27, azi);
+//  }
   ret[0] = a;
   ret[1] = e;
   return ret;
@@ -122,18 +143,21 @@ double HRIR_Data::findClosestWeightedIndex(double *arr, int length, double value
   int index_o = 0;
   int index_f = length-1;
   bool done = false;
+
+  if(value <= arr[index_o]){
+    return (double)index_o;
+  }
+  if(value >= arr[index_f]){
+    return (double)index_f;
+  }
+
   while(index_o < index_f){
     int half = (index_f + index_o)/2;
-    //base cases
+    //base case
     if(arr[half] == value){
       return (double)half;
     }
-    if(value <= arr[index_o]){
-      return (double)index_o;
-    }
-    if(value >= arr[index_f]){
-      return (double)index_f;
-    }
+
     //binary search cases
     if(value > arr[half]){
       if(half < index_f && value < arr[half+1] ){

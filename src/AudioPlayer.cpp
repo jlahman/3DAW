@@ -19,7 +19,7 @@
 #include"util.h"
 #include"AnimationPlayer.h"
 
-#define NUM_SECONDS   (10)
+#define NUM_SECONDS   (16)
 
 
 #define FRAMES_PER_BUFFER  (2048) //needs to be at least 201 for no errors: 2048 seems to be as low as we can go rn
@@ -36,7 +36,9 @@ public:
           anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_011/hrir_final.mat");
           //anime->addSource("Bee", trackList[0]);
           anime->addSource("Waterfall", trackList[1]);
-          anime->setStartTime("Waterfall", 3.0);
+          //anime->setStartTime("Waterfall", 3.0);
+          anime->test_KeyFrames("Waterfall");
+
           //hrir = new HRIR_Data("../data/CIPIC_hrtf_database/standard_hrir_database/subject_162/hrir_final.mat");
 
     }
@@ -150,7 +152,7 @@ private:
         trackList[0]->setAzimuth(newAzi);*/
 
         timingCounter = timingCounter + framesPerBuffer -199;
-        printf("%E\n", timingCounter/44100.0);
+        //printf("%E\n", timingCounter/44100.0);
        // index = index + framesPerBuffer;
         (void) timeInfo; /* Prevent unused variable warnings. */
         (void) statusFlags;

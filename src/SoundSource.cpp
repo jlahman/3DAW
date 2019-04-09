@@ -55,4 +55,5 @@ SoundSourceProperties::SoundSourceProperties(Polar3D * p, bool looping, bool vis
   this->position = p;
   this->isLooping = looping;
   this->isVisible = visible;
+  this->scale = 1.0;
 }

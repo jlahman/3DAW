@@ -34,4 +34,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
 
 void convolve( double* Signal, uint32_t SignalLen, double* Kernel, uint32_t KernelLen, double * output);
 
+double lerp(double y0, double y1, double x, double x0, double x1);
+
+
 #endif

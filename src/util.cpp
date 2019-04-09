@@ -54,9 +54,6 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
      fprintf(stderr, "ERROR: couldn't find stream info\n");
    }
 
-   fprintf(stderr, "DEBUG1: \n");
-
-
    //prepare codec Context
    AVCodec * pCodec = NULL;
    AVCodecParameters * pCodecParameters = NULL;
@@ -69,7 +66,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
        break;
      }
    }
-   fprintf(stderr, "DEBUG2: \n");
+   \
 
    AVCodecContext * pCodecContext = avcodec_alloc_context3(pCodec);
    if(!pCodecContext){
@@ -89,16 +86,15 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
    }
 
 
-   AVFrame * pFrame = av_frame_alloc();  fprintf(stderr, "DEBUG2: \n");
+   AVFrame * pFrame = av_frame_alloc();
 
-   AVPacket * pPacket = av_packet_alloc();  fprintf(stderr, "DEBUG2: \n");
+   AVPacket * pPacket = av_packet_alloc();
 
    int response = 0;
 
-   *data = NULL;  fprintf(stderr, "DEBUG4: \n");
+   *data = NULL;
 
    *size = 0;
-   fprintf(stderr, "DEBUG3: \n");
 
    // prepare resampler
     SwrContext* swr = swr_alloc();
@@ -128,12 +124,13 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
        }
        //decode all frames in the packet
        while(response >= 0){
-         fprintf(stderr, "hewwo\n" );
+         //fprintf(stderr, "hewwo\n" );
          //get the next frame from the codec context and store ret val in response
          response = avcodec_receive_frame(pCodecContext, pFrame);
-         printf("response: %d\n", response);
+         //printf("response: %d\n", response);
 
-         if( response == AVERROR(EAGAIN) ||response == AVERROR_EOF){  // printf("ERRORS\n");
+         if( response == AVERROR(EAGAIN) ||response == AVERROR_EOF){
+           //do something else other than break i think
 
            break;
          } else if (response < 0){
@@ -159,4 +156,12 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
      }
      av_packet_unref(pPacket);
    }
+}
+
+double lerp(double y0, double y1, double x, double x0, double x1){
+  double interval = x1 - x0;
+  double portionY0 = x1 - x;
+  double portionY1 = x - x0;
+
+  return (y0*portionY0 + y1*portionY1)/interval;
 }

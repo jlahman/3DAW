@@ -28,8 +28,10 @@ class AnimationPlayer {
     //animation player should just handle doing the interpolation of source properties between keyframes
     //    given a timestamp and frame length, maybe?
     void getBuffer(double ** buffer, int frameStart, int length);
-    //std::vector<SoundSource*> getSources(double time_s);
+    std::vector<SoundSource*> getSources(double time_s);
     int addKeyFrame(std::string sourceName, double time_s, SoundSourceProperties * properties);
+    int test_KeyFrames(std::string sourceName);
+
     int setStartTime(std::string sourceName, double time_s);
 
 
@@ -39,6 +41,11 @@ class AnimationPlayer {
     //    a audioprocessor would querry properties at a timestamp and process the audio tracks accordingly,
     //        basically whats in getbuffer
     std::vector<MasterSource*> sourceList;
+    SoundSource* getSource(MasterSource * s, double time_s);
+    SoundSourceProperties * interpolateProperties(MasterSource * s, double time_s, int index_lo, int index_hi);
+    double * interpolateHRIR_linear( double index_a, int index_e, bool left);
+
+
 
     HRIR_Data * hrir;
     //void processFrame(double ** buffer, int frameStart, int length);
