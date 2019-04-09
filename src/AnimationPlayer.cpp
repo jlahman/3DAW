@@ -40,6 +40,7 @@ int AnimationPlayer::test_KeyFrames(std::string sourceName){
         p->position->theta = p->position->theta + 180.0 + delta;
         p->position->theta = fmod(p->position->theta, 360.0);
         p->position->theta = p->position->theta - 180;
+        p->scale = 0.5;
         //printf("%d\n", (int) p->position->theta);
         time_s = time_s + .25;
         (*source)->keyFrameList.push_back(new KeyFrame(p, time_s));
@@ -160,9 +161,9 @@ double * AnimationPlayer::interpolateHRIR_linear(double index_a, int index_e, bo
 }
 
 void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
-  int convDataSize = length;
   int hrirLength = 200;
-  int sourceChunkSize = length - hrirLength + 1;
+  int convDataSize = length + hrirLength - 1;
+  int sourceChunkSize = length;
 
   double * mDataChunk = new double[sourceChunkSize];
   double * audioData;
@@ -199,13 +200,15 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
       }
       else{
         if((*source)->getProperties()->isLooping){
-          mDataChunk[i] = audioData[(i+frameStart)%(*source)->getLength()];
+          double scale = (*source)->getProperties()->scale;
+          mDataChunk[i] = scale*audioData[(i+frameStart)%(*source)->getLength()];
         }
         else {
           if(i + frameStart >= (*source)->getLength()){
             mDataChunk[i] = 0;
           } else{
-            mDataChunk[i] = audioData[i+frameStart];
+            double scale = (*source)->getProperties()->scale;
+            mDataChunk[i] = scale* audioData[i+frameStart];
           }
         }
       }

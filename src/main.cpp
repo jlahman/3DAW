@@ -11,12 +11,14 @@
 #include"AudioPlayer.h"
 
 #define NUM_SECONDS   (16)
-
+std::vector<Track*> trackList;
 
 int main(int argc,  char * argv[])
 {
+
     PaError err;
     AudioPlayer* ap;
+    AnimationPlayer * anime;
 
    ap = new AudioPlayer();
 
@@ -31,6 +33,7 @@ int main(int argc,  char * argv[])
         bool done = false;
         bool pause = false;
         while(!done){
+          //handle input
           std::cin >> input;
           if(input == 'p'){
             pause = !pause;
@@ -39,6 +42,7 @@ int main(int argc,  char * argv[])
           } else if(input == 'q') {
             done = true;
           }
+
           if (pause)
           {
              ap->start();

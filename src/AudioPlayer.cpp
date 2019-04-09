@@ -142,7 +142,7 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     newAzi -= 180;
     trackList[0]->setAzimuth(newAzi);*/
 
-    timingCounter = timingCounter + framesPerBuffer -199;
+    timingCounter = timingCounter + framesPerBuffer;
     //printf("%E\n", timingCounter/44100.0);
    // index = index + framesPerBuffer;
     (void) timeInfo; /* Prevent unused variable warnings. */
