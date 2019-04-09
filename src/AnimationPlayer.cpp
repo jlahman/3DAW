@@ -227,6 +227,12 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
     for(int i =0; i< length; i++){
       buffer[0][i] += convDataL[i];
       buffer[1][i] += convDataR[i];
+      if(abs(buffer[0][i]) > 1.0){
+        buffer[0][i] = buffer[0][i]/abs(buffer[0][i]);
+      }
+      if(abs(buffer[1][i]) > 1.0){
+        buffer[1][i] = buffer[1][i]/abs(buffer[1][i]);
+      }
       //printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 
     }

@@ -27,15 +27,28 @@ int main(int argc,  char * argv[])
 
     if (ap->open(Pa_GetDefaultOutputDevice()))
     {
-        if (ap->start())
-        {
-            printf("Play for %d seconds.\n", NUM_SECONDS );
+        char input;
+        bool done = false;
+        bool pause = false;
+        while(!done){
+          std::cin >> input;
+          if(input == 'p'){
+            pause = !pause;
+          } else if(input == 'r') {
+            ap->restart();
+          } else if(input == 'q') {
+            done = true;
+          }
+          if (pause)
+          {
+             ap->start();
 
-            Pa_Sleep( NUM_SECONDS * 1000 );
-
+              printf("Play\n" );
+          } else {
+            printf("Pause\n" );
             ap->stop();
+          }
         }
-
         ap->close();
     }
 

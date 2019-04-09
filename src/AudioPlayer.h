@@ -14,7 +14,7 @@
 
 #include"Track.h"
 #include"AnimationPlayer.h"
-#define FRAMES_PER_BUFFER  (2048) //needs to be at least 201 for no errors: 2048 seems to be as low as we can go rn
+#define FRAMES_PER_BUFFER  (4096)//(2048) //needs to be at least 201 for no errors: 2048 seems to be as low as we can go rn
 
 class AudioPlayer
 {
@@ -22,9 +22,10 @@ public:
     AudioPlayer();
 
     bool open(PaDeviceIndex indexx);
-    bool close();
+    bool  close();
     bool start();
     bool stop();
+    bool restart();
 
 private:
     int paCallbackMethod(const void *inputBuffer, void *outputBuffer,
@@ -41,7 +42,7 @@ private:
     void paStreamFinishedMethod();
     static void paStreamFinished(void* userData);
 
-    PaStream *stream;
+    PaStream *stream = NULL;
     AnimationPlayer * anime;
     //HRIR_Data *hrir;
     int timingCounter;

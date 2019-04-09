@@ -11,13 +11,20 @@ AudioPlayer::AudioPlayer()
 {
     /* initialise variables */
     timingCounter = 0;
-    trackList.push_back(new Track("../data/Bee.mp3"));
+    trackList.push_back(new Track("../data/narrator2.ogg"));
     trackList.push_back(new Track("../data/test.wav"));
+    trackList.push_back(new Track("../data/narrator.ogg"));
+
     anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_011/hrir_final.mat");
-    anime->addSource("Bee", trackList[0]);
+    anime->addSource("Narrator2", trackList[0]);
+    anime->addKeyFrame("Narrator2",0.0,  new SoundSourceProperties(new Polar3D(1.0, -100, 0.0), false, true));
     anime->addSource("Waterfall", trackList[1]);
-    anime->setStartTime("Waterfall", 3.0);
-    anime->test_KeyFrames("Waterfall");
+    anime->addSource("Narrator", trackList[2]);
+
+    anime->setStartTime("Narrator", 5.0);
+    anime->setStartTime("Narrator2", 0.0);
+
+    anime->test_KeyFrames("Narrator");
 }
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
@@ -84,6 +91,15 @@ bool AudioPlayer::start()
     PaError err = Pa_StartStream( stream );
 
     return (err == paNoError);
+}
+
+bool AudioPlayer::restart()
+{
+    if (stream == 0)
+        return false;
+
+    timingCounter = 0;
+    return true;
 }
 
 bool AudioPlayer::stop()
@@ -162,7 +178,8 @@ int AudioPlayer::paCallback( const void *inputBuffer, void *outputBuffer,
 
 void AudioPlayer::paStreamFinishedMethod()
 {
-    printf( "Stream Completed\n" );
+  //  printf( "Stream Completed\n" );
+  return;
 }
 
 /*
