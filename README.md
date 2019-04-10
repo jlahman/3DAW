@@ -11,9 +11,9 @@ In order to build this project, the following system libraries need to be instal
 	* [avformat]()
 	* [avutil]()
 	* [swresample]()
-	
+
 If you are using a linux distro, your software repository probably has these. On ubuntu 18.04 they can be installed by:
-`sudo apt install libmatio-dev libportaudio2 libavcodec-dev libavformat-dev libavutil-dev libavresample-dev`
+`sudo apt install libmatio-dev libportaudio2 portaudio19-dev libavcodec-dev libavformat-dev libavutil-dev libavresample-dev`
 
 ### Using CMAKE:
 1. Download Project and extract to desired location
@@ -24,9 +24,9 @@ If you are using a linux distro, your software repository probably has these. On
 1. install according to your platforms default way
 	* i.e. on systems with `make` just run `make`
 1. Run the executable `~/3DAW/bin/audio_test`
-	
+
 ### Using make:
-run in src directory: 
+run in src directory:
 `make audio_test`
 `make clean`
 
@@ -35,4 +35,3 @@ run in bin directory: ./audio_test
 ## Running:
 On successful building:
 Run the executable `~/3DAW/bin/audio_test`
-
