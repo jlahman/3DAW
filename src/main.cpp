@@ -45,9 +45,8 @@ int main(int argc,  char * argv[])
 
           if (pause)
           {
-             ap->start();
-
-              printf("Play\n" );
+            ap->start();
+            printf("Play\n" );
           } else {
             printf("Pause\n" );
             ap->stop();

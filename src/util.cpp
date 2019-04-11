@@ -127,7 +127,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
          //fprintf(stderr, "hewwo\n" );
          //get the next frame from the codec context and store ret val in response
          response = avcodec_receive_frame(pCodecContext, pFrame);
-         printf("response: %d\n", response);
+         //printf("response: %d\n", response);
 
          if( response == AVERROR(EAGAIN) ||response == AVERROR_EOF){
            //do something else other than break i think

@@ -14,17 +14,27 @@ AudioPlayer::AudioPlayer()
     trackList.push_back(new Track("../data/narrator2.ogg"));
     trackList.push_back(new Track("../data/test.wav"));
     trackList.push_back(new Track("../data/narrator.ogg"));
+    trackList.push_back(new Track("../data/souldfire.wav"));
 
-    anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_011/hrir_final.mat");
-    anime->addSource("Narrator2", trackList[0]);
+
+    anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
+    //anime->addSource("Narrator2", trackList[0]);
     anime->addKeyFrame("Narrator2",0.0,  new SoundSourceProperties(new Polar3D(1.0, -100, 0.0), false, true));
-    anime->addSource("Waterfall", trackList[1]);
-    anime->addSource("Narrator", trackList[2]);
+  anime->addSource("bonfire", trackList[3]);
+    SoundSourceProperties *p = new SoundSourceProperties(new Polar3D(1.0, 25, 0.0), true, true);
+    p->scale = .45;
+    anime->addKeyFrame("bonfire", 0.0, p);
 
-    anime->setStartTime("Narrator", 5.0);
-    anime->setStartTime("Narrator2", 0.0);
+    //anime->addSource("Waterfall", trackList[1]);
+    p = new SoundSourceProperties(new Polar3D(1.0, -60, 0.0), true, true);
+    p->scale = 0.2;
+    anime->addKeyFrame("Waterfall", 0.0,  p);
 
-    anime->test_KeyFrames("Narrator");
+
+    //anime->setStartTime("Narrator", 5.0);
+    //anime->setStartTime("Narrator2", 0.0);
+
+    //anime->test_KeyFrames("Narrator");
 }
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
@@ -38,7 +48,7 @@ bool AudioPlayer::open(PaDeviceIndex indexx)
 
     outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = paFloat32;  //paInt16; /* 32 bit float output */
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
+    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultHighOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
 
     PaError err = Pa_OpenStream(
@@ -124,23 +134,39 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     //double bufferRight[framesPerBuffer];
 
     double **buffer = new double*[2];
-    buffer[0] = new double[FRAMES_PER_BUFFER];
-    buffer[1] = new double[FRAMES_PER_BUFFER];
+    const int fs = (const int)framesPerBuffer;
+    //printf("%d\n", fs);
+    buffer[0] = new double[fs];
+    buffer[1] = new double[fs];
+    double **newOverflow = new double*[2];
+    newOverflow[0] = new double[199];
+    newOverflow[1] = new double[199];
 
-    anime->getBuffer(buffer, timingCounter, framesPerBuffer);
+    anime->getBuffer(buffer, newOverflow, timingCounter, framesPerBuffer);
 
-
+    double outL;// = buffer[0][i] + overflow[0][i];
+    double outR;// = buffer[1][i] + overflow[1][i];
     for( i=0; i<framesPerBuffer; i++ )
     {
-        *out++ = buffer[0][i];
-        *out++ = buffer[1][i];
+        if(i < 200 and overflow != NULL){
+           outL = buffer[0][i] + overflow[0][i];
+           outR = buffer[1][i] + overflow[1][i];
+          if(outL > 1.0){
+            outL = 1.0;
+          }
+          if(outR > 1.0){
+            outR = 1.0;
+          }
+
+          *out++ = outL;//buffer[0][i] + overflow[0][i];
+          *out++ = outR;//buffer[1][i] + overflow[1][i];
+        } else{
+          *out++ = buffer[0][i];
+          *out++ = buffer[1][i];
+        }
     }
 
-    //Just to keep circling while animation player is WIP
-    /*double newAzi = trackList[0]->getAzimuth() + 180 + 5;
-    newAzi = fmod(newAzi, 360);
-    newAzi -= 180;
-    trackList[0]->setAzimuth(newAzi);*/
+    overflow = newOverflow;
 
     timingCounter = timingCounter + framesPerBuffer;
     //printf("%E\n", timingCounter/44100.0);

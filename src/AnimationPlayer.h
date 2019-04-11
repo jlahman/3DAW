@@ -27,7 +27,7 @@ class AnimationPlayer {
     //this handles the convolution and addition, but probably shouldn't be a part of this class
     //animation player should just handle doing the interpolation of source properties between keyframes
     //    given a timestamp and frame length, maybe?
-    void getBuffer(double ** buffer, int frameStart, int length);
+    void getBuffer(double ** buffer, double ** overflow, int frameStart, int length);
     std::vector<SoundSource*> getSources(double time_s);
     int addKeyFrame(std::string sourceName, double time_s, SoundSourceProperties * properties);
     int test_KeyFrames(std::string sourceName);

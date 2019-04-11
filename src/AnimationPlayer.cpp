@@ -160,10 +160,11 @@ double * AnimationPlayer::interpolateHRIR_linear(double index_a, int index_e, bo
   return hrirLerped;
 }
 
-void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
+void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameStart, int length){
   int hrirLength = 200;
   int convDataSize = length + hrirLength - 1;
   int sourceChunkSize = length;
+  //frameStart = frameStart - 197;
 
   double * mDataChunk = new double[sourceChunkSize];
   double * audioData;
@@ -184,6 +185,11 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
     buffer[1][i] = 0;
   }
 
+  for(int i =0; i< 200; i++){
+    overflow[0][i] = 0;
+    overflow[1][i] = 0;
+  }
+
   if(ssl.empty()){
     return;
   }
@@ -202,6 +208,8 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
         if((*source)->getProperties()->isLooping){
           double scale = (*source)->getProperties()->scale;
           mDataChunk[i] = scale*audioData[(i+frameStart)%(*source)->getLength()];
+        //  if((i+frameStart)%(*source)->getLength() < 100 || (i+frameStart)%(*source)->getLength() > (*source)->getLength() -100)
+        //  printf("AudioDataChunk[%d]: %E\t|\t%E :[%d]\n", i, mDataChunk[i],  scale*audioData[(i+frameStart)%(*source)->getLength()], (i+frameStart)%(*source)->getLength());
         }
         else {
           if(i + frameStart >= (*source)->getLength()){
@@ -236,9 +244,38 @@ void AnimationPlayer::getBuffer(double ** buffer, int frameStart, int length){
       if(abs(buffer[1][i]) > 1.0){
         buffer[1][i] = buffer[1][i]/abs(buffer[1][i]);
       }
+      if(i < 100 || i > length -100)
+      printf("AudioDataChunk[%d]: %E\t|\t :[]\n", i, buffer[0][i]);
+      if(abs(buffer[0][i] - buffer[0][i-1]) > 0.2)
+      printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
+
+    }
+    for(int i =length; i< length + 199; i++){
+      overflow[0][i-length] += convDataL[i];
+      overflow[1][i-length] += convDataR[i];
+    /*  if(abs(overflow[0][i-length]) > 1.0){
+        overflow[0][i-length] = overflow[0][i-length]/abs(overflow[1][i-length]);
+      }
+      if(abs(overflow[1][i-length]) > 1.0){
+        overflow[1][i-length] = overflow[1][i-length]/abs(overflow[1][i-length]);
+      }*/
       //printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 
     }
 
   }
+/*
+  for(int i =0; i< 200; i++){
+    buffer[0][i] = lerp(0, buffer[0][199], i, 0, 200-1);
+    buffer[1][i] = lerp(0, buffer[1][199], i, 0, 200-1);
+
+
+
+  }
+  for(int i =length -200; i< length; i++){
+    buffer[0][i] = lerp(buffer[0][length -200], 0, i, length -200, length-1);
+    buffer[1][i] = lerp(buffer[1][length -200], 0, i, length -200, length-1);
+
+
+  }*/
 }

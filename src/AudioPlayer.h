@@ -47,6 +47,7 @@ private:
     //HRIR_Data *hrir;
     int timingCounter;
     char message[20];
+    double **overflow = NULL;
     std::vector<Track*> trackList;
 
 };
