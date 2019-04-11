@@ -66,7 +66,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
        break;
      }
    }
-   \
+
 
    AVCodecContext * pCodecContext = avcodec_alloc_context3(pCodec);
    if(!pCodecContext){
@@ -104,7 +104,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
    av_opt_set_int(swr, "out_channel_layout", AV_CH_LAYOUT_MONO, 0);
    av_opt_set_int(swr, "in_sample_rate", pCodecParameters->sample_rate, 0);
    av_opt_set_int(swr, "out_sample_rate", 44100, 0);
-   av_opt_set_sample_fmt(swr, "in_sample_fmt",  pCodec->sample_fmts[0], 0);
+   av_opt_set_sample_fmt(swr, "in_sample_fmt",  (AVSampleFormat)pCodecParameters->format, 0);
    av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_DBL,  0);
    swr_init(swr);
    if (!swr_is_initialized(swr)) {
@@ -127,7 +127,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
          //fprintf(stderr, "hewwo\n" );
          //get the next frame from the codec context and store ret val in response
          response = avcodec_receive_frame(pCodecContext, pFrame);
-         //printf("response: %d\n", response);
+         printf("response: %d\n", response);
 
          if( response == AVERROR(EAGAIN) ||response == AVERROR_EOF){
            //do something else other than break i think
