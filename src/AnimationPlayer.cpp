@@ -160,20 +160,25 @@ double * AnimationPlayer::interpolateHRIR_linear(double index_a, int index_e, bo
   return hrirLerped;
 }
 
-void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameStart, int length){
-  int hrirLength = 200;
-  int convDataSize = length + hrirLength - 1;
-  int sourceChunkSize = length;
+void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameStart, const int length){
+  const int hrirLength = 200;
+  const int convDataSize = length + hrirLength - 1;
+  const int sourceChunkSize = length;
   //frameStart = frameStart - 197;
+  	double * audioData;
 
-  double * mDataChunk = new double[sourceChunkSize];
-  double * audioData;
-
-  double * convDataL = new double[convDataSize];
-  double * convDataR = new double[convDataSize];
-
-  double * hrirL = new double[hrirLength];
-  double * hrirR = new double[hrirLength];
+	//shouldn't be doing memory allocation or deallocation in paCallBackMethod
+	//printf("BeforeDelete\n" );
+//	if(mDataChunk != NULL) delete[] mDataChunk;
+	//printf("AfterDelete\n" );
+ 	mDataChunk = new double[sourceChunkSize];
+	//printf("afterNew\n");
+	//if(convDataL != NULL)
+	//delete[] convDataL;
+	//if(convDataR != NULL)
+	//delete[] convDataR;
+	convDataL = new double[convDataSize];
+	convDataR = new double[convDataSize];
 
   double frameTime = frameStart/44100.0;
 
@@ -198,6 +203,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 
   for(std::vector<SoundSource*>::iterator source = ssl.begin(); source != ssl.end(); source++){
     audioData = (*source)->getAudioData();
+    //printf("Audio Length%d\t%E\n", (*source)->getLength(),(*source)->getLength()/44100.0 );
     double start = 0.0;//(*source)->timeStart_s;
 
     for(int i = 0; i < sourceChunkSize; i++){
@@ -244,8 +250,8 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
       if(abs(buffer[1][i]) > 1.0){
         buffer[1][i] = buffer[1][i]/abs(buffer[1][i]);
       }
-      if(i < 100 || i > length -100)
-      printf("AudioDataChunk[%d]: %E\t|\t :[]\n", i, buffer[0][i]);
+      //if(i < 100 || i > length -100)
+      //printf("AudioDataChunk[%d]: %E\t|\t :[]\n", i, buffer[0][i]);
       if(abs(buffer[0][i] - buffer[0][i-1]) > 0.2)
       printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 
@@ -264,6 +270,20 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
     }
 
   }
+  if(convDataL != NULL and convDataR != NULL){
+	//  delete[] convDataL;
+	//  convDataL = NULL;
+	//  delete[] convDataR;
+	// convDataR = NULL;
+	 //delete[] hrirL; hrirL = NULL;
+    // delete[] hrirR; hrirR = NULL;
+
+  }
+
+  //delete[] convDataR;
+  //delete[] mDataChunk;
+  //mDataChunk = NULL;
+
 /*
   for(int i =0; i< 200; i++){
     buffer[0][i] = lerp(0, buffer[0][199], i, 0, 200-1);

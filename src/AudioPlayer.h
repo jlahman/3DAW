@@ -48,6 +48,8 @@ private:
     int timingCounter;
     char message[20];
     double **overflow = NULL;
+	double **buffer = NULL;
+
     std::vector<Track*> trackList;
 
 };

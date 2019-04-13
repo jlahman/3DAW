@@ -18,23 +18,23 @@ AudioPlayer::AudioPlayer()
 
 
     anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
-    //anime->addSource("Narrator2", trackList[0]);
+    anime->addSource("Narrator2", trackList[2]);
     anime->addKeyFrame("Narrator2",0.0,  new SoundSourceProperties(new Polar3D(1.0, -100, 0.0), false, true));
-  anime->addSource("bonfire", trackList[3]);
+  	anime->addSource("bonfire", trackList[3]);
     SoundSourceProperties *p = new SoundSourceProperties(new Polar3D(1.0, 25, 0.0), true, true);
     p->scale = .45;
     anime->addKeyFrame("bonfire", 0.0, p);
 
-    //anime->addSource("Waterfall", trackList[1]);
+    anime->addSource("Waterfall", trackList[1]);
     p = new SoundSourceProperties(new Polar3D(1.0, -60, 0.0), true, true);
     p->scale = 0.2;
     anime->addKeyFrame("Waterfall", 0.0,  p);
 
 
-    //anime->setStartTime("Narrator", 5.0);
+    anime->setStartTime("Narrator", 5.0);
     //anime->setStartTime("Narrator2", 0.0);
 
-    //anime->test_KeyFrames("Narrator");
+    anime->test_KeyFrames("Narrator2");
 }
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
@@ -48,7 +48,7 @@ bool AudioPlayer::open(PaDeviceIndex indexx)
 
     outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = paFloat32;  //paInt16; /* 32 bit float output */
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultHighOutputLatency;
+    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
 
     PaError err = Pa_OpenStream(
@@ -56,7 +56,7 @@ bool AudioPlayer::open(PaDeviceIndex indexx)
         NULL, /* no input */
         &outputParameters,
         44100,
-        FRAMES_PER_BUFFER,//22050/8,
+        paFramesPerBufferUnspecified,//FRAMES_PER_BUFFER,//22050/8,
         paNoFlag,
         &AudioPlayer::paCallback,
         this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
@@ -133,7 +133,7 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     //double bufferLeft[framesPerBuffer];
     //double bufferRight[framesPerBuffer];
 
-    double **buffer = new double*[2];
+    buffer = new double*[2];
     const int fs = (const int)framesPerBuffer;
     //printf("%d\n", fs);
     buffer[0] = new double[fs];
@@ -142,7 +142,7 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     newOverflow[0] = new double[199];
     newOverflow[1] = new double[199];
 
-    anime->getBuffer(buffer, newOverflow, timingCounter, framesPerBuffer);
+    anime->getBuffer(buffer, newOverflow, timingCounter, (const int)framesPerBuffer);
 
     double outL;// = buffer[0][i] + overflow[0][i];
     double outR;// = buffer[1][i] + overflow[1][i];
@@ -166,10 +166,56 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
         }
     }
 
-    overflow = newOverflow;
+	//this should make audio truer for frames smaller than 200
+	//it might not though, need to go through math
+	for(i = framesPerBuffer; i < 199 && overflow != NULL; i++){
+		newOverflow[0][i] += overflow[0][i];
+		newOverflow[1][i] += overflow[1][i];
+
+	}
+
+	//free(overflow[1]);
+	//free(overflow[0]);
+	/*if(buffer != NULL){
+		delete[] buffer[1];
+		buffer[1] = NULL;
+		delete[] buffer[0];
+		buffer[0] = NULL;
+		delete buffer;
+		buffer = NULL;
+	}
+*/
+
+/*
+	if(overflow != NULL){
+		delete[] overflow[1];
+		overflow[1] = NULL;
+		delete[] overflow[0];
+		overflow[0] = NULL;
+		delete overflow;
+		overflow = NULL;
+	}
+	overflow = newOverflow;
+	overflow[0] = newOverflow[0];
+	overflow[1] = newOverflow[1];*/
+
+	overflow = newOverflow;
+
+
+	/*delete[] buffer[0];
+	delete[] buffer[1];
+	delete[] buffer;*/
+	//free(buffer[1]);
+	//free(buffer[0]);
+	//delete[] buffer;
+
+
+
+
+
 
     timingCounter = timingCounter + framesPerBuffer;
-    //printf("%E\n", timingCounter/44100.0);
+    //printf("%d\n", framesPerBuffer);
    // index = index + framesPerBuffer;
     (void) timeInfo; /* Prevent unused variable warnings. */
     (void) statusFlags;
@@ -192,7 +238,6 @@ int AudioPlayer::paCallback( const void *inputBuffer, void *outputBuffer,
 {
     /* Here we cast userData to AudioProcessor* type so we can call the instance method paCallbackMethod, we can do that since
        we called Pa_OpenStream with 'this' for userData */
-
 
     return ((AudioPlayer*)userData)->paCallbackMethod(inputBuffer, outputBuffer,
         framesPerBuffer,

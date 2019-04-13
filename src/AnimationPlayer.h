@@ -48,6 +48,9 @@ class AnimationPlayer {
 
 
     HRIR_Data * hrir;
+	double * convDataL;
+	double * convDataR;
+	double * mDataChunk = NULL;
     //void processFrame(double ** buffer, int frameStart, int length);
 
 };
