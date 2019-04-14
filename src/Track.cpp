@@ -17,6 +17,5 @@ Track::Track(std::string filepath, std::string name){
 
 int Track::loadProperties(){
   sampleRate = 44100;
-  loadAudioData(filepath, sampleRate, 1, &data, &length);
-
+  return loadAudioData(filepath, sampleRate, 1, &data, &length);
 }

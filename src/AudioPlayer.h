@@ -9,6 +9,8 @@
 
 
 #include <vector>
+#include <deque>
+
 #include<portaudio.h>
 
 
@@ -21,11 +23,24 @@ class AudioPlayer
 public:
     AudioPlayer();
 
+	//stream operations
     bool open(PaDeviceIndex indexx);
-    bool  close();
+    bool close();
     bool start();
     bool stop();
     bool restart();
+
+	int updateBuffer(int removeLength);
+
+	//buffer operations
+	int buffer_enque(double * data, int length);
+	int buffer_enque(std::vector<double> * data);
+	int buffer_clear();
+	int getBufferMax();
+	void setBufferMax(int max);
+	int buffer_size();
+	//std::vector<double> buffer_deque(int length);
+
 
 private:
     int paCallbackMethod(const void *inputBuffer, void *outputBuffer,
@@ -42,13 +57,26 @@ private:
     void paStreamFinishedMethod();
     static void paStreamFinished(void* userData);
 
+
     PaStream *stream = NULL;
-    AnimationPlayer * anime;
     //HRIR_Data *hrir;
     int timingCounter;
     char message[20];
-    double **overflow = NULL;
-    std::vector<Track*> trackList;
+    //double **overflow = NULL;
+	std::deque<double> buffer;
+	std::deque<double> bufferSwap1; //TODO: think of a better name for its role
+	std::deque<double> bufferSwap2; //TODO: think of a better name for its role
+	std::deque<double> *bufferExtern; //TODO: think of a better name for its role
+	std::deque<double> *bufferIntern; //TODO: think of a better name for its role
+
+	bool bufferLocked = false;
+	bool bufferNeedsToClear = false;
+
+
+	std::deque<double> dataToEnque;
+
+	int bufferSize;
+	int bufferMax;
 
 };
 #endif

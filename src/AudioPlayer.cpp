@@ -1,73 +1,54 @@
 /*
-* Skeleton Example code was taken from paex_sine_c++.cpp
-  TODO: should this be purely an audio player? Take out all data processing and put that in a seperate class?
-        How to get the final buffer data to the audio player?
-        If not realtime could have a function to change pointer to data? would realtime make be any different?
- */
+* Skeleton Example code was taken from paex_sine_c++.cpp*/
 #include<iostream>
+#include<algorithm>
 #include"AudioPlayer.h"
 
 AudioPlayer::AudioPlayer()
 {
     /* initialise variables */
     timingCounter = 0;
-    trackList.push_back(new Track("../data/narrator2.ogg"));
-    trackList.push_back(new Track("../data/test.wav"));
-    trackList.push_back(new Track("../data/narrator.ogg"));
-    trackList.push_back(new Track("../data/souldfire.wav"));
+	bufferMax = 2*44100*1.5;
+	bufferSize = 0;// 2*44100*1.5;
+	bufferIntern = &bufferSwap1;
+	bufferExtern = &bufferSwap2;
 
 
-    anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
-    //anime->addSource("Narrator2", trackList[0]);
-    anime->addKeyFrame("Narrator2",0.0,  new SoundSourceProperties(new Polar3D(1.0, -100, 0.0), false, true));
-  	anime->addSource("bonfire", trackList[3]);
-    SoundSourceProperties *p = new SoundSourceProperties(new Polar3D(1.0, 25, 0.0), true, true);
-    p->scale = .45;
-    anime->addKeyFrame("bonfire", 0.0, p);
-
-    //anime->addSource("Waterfall", trackList[1]);
-    p = new SoundSourceProperties(new Polar3D(1.0, -60, 0.0), true, true);
-    p->scale = 0.2;
-    anime->addKeyFrame("Waterfall", 0.0,  p);
-
-
-    //anime->setStartTime("Narrator", 5.0);
-    //anime->setStartTime("Narrator2", 0.0);
-
-    //anime->test_KeyFrames("Narrator");
 }
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
 {
-    PaStreamParameters outputParameters;
+	printf("helllo\n");
 
+    PaStreamParameters outputParameters;
+printf("helllo\n");
     outputParameters.device = indexx;
     if (outputParameters.device == paNoDevice) {
         return false;
     }
-
+printf("helllo\n");
     outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = paFloat32;  //paInt16; /* 32 bit float output */
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultHighOutputLatency;
+    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
-
+printf("helllo\n");
     PaError err = Pa_OpenStream(
         &stream,
         NULL, /* no input */
         &outputParameters,
         44100,
-        paFramesPerBufferUnspecified, //	FRAMES_PER_BUFFER,//22050/8,
+        paFramesPerBufferUnspecified,//FRAMES_PER_BUFFER,//22050/8,
         paNoFlag,
         &AudioPlayer::paCallback,
         this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
         );
-
+printf("helllo\n");
     if (err != paNoError)
     {
         /* Failed to open stream to device !!! */
         return false;
     }
-
+printf("helllo\n");
     err = Pa_SetStreamFinishedCallback( stream, &AudioPlayer::paStreamFinished );
 
     if (err != paNoError)
@@ -77,7 +58,7 @@ bool AudioPlayer::open(PaDeviceIndex indexx)
 
         return false;
     }
-
+printf("helllo\n");
     return true;
 }
 
@@ -107,7 +88,7 @@ bool AudioPlayer::restart()
 {
     if (stream == 0)
         return false;
-
+//updateBuffer(0);
     timingCounter = 0;
     return true;
 }
@@ -127,62 +108,86 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     const PaStreamCallbackTimeInfo* timeInfo,
     PaStreamCallbackFlags statusFlags)
 {
-    unsigned long i;
+	//printf("PaCallBack\n");
     float* out = (float *) outputBuffer;
+	printf("BEFORE %s\n", bufferLocked ? "true" : "false");
 
-    //double bufferLeft[framesPerBuffer];
-    //double bufferRight[framesPerBuffer];
-	printf("%d\n", framesPerBuffer);
+//	while(bufferLocked){};
+//bufferLocked = true;
+	//std::vector<double> tempBuffer;
+	printf("%s\n", bufferLocked ? "true" : "false");
+	//get data for this frame
+	int length = bufferIntern->size();
+	if(length >= framesPerBuffer*2){
+		length = framesPerBuffer*2;
+		if(!bufferIntern->empty())
+			std::copy(bufferIntern->begin(), (bufferIntern->begin()+length), std::back_inserter(buffer));
+	} else {
+		if(!bufferIntern->empty())
+			std::copy(bufferIntern->begin(), (bufferIntern->begin()+length), std::back_inserter(buffer));
 
-    double **buffer = new double*[2];
-    const int fs = (const int)framesPerBuffer;
-    //printf("%d\n", fs);
-    buffer[0] = new double[fs];
-    buffer[1] = new double[fs];
-    double **newOverflow = new double*[2];
-    newOverflow[0] = new double[199];
-    newOverflow[1] = new double[199];
-	printf("dhfgh");
+		bufferIntern->clear();
 
-    anime->getBuffer(buffer, newOverflow, timingCounter, framesPerBuffer);
-	printf("dhhghgdfhfh\n");
+		//Switch buffer used for internal data
+		//set lock
+		bufferLocked = true;
+		//store pointer of intern,
+		std::deque<double> * temp = bufferIntern;
+		//set pointer of intern to other swap buffer
+		if(bufferIntern == &bufferSwap1){
+			bufferIntern = &bufferSwap2;
+		} else {
+			bufferIntern = &bufferSwap1;
+		}
+		//set extern to stored
+		bufferExtern = temp;
+		//reset bufferSize
+		bufferSize = bufferExtern->size();
+		//release lock
+		bufferLocked = false;
 
-    double outL;// = buffer[0][i] + overflow[0][i];
-    double outR;// = buffer[1][i] + overflow[1][i];
-    for( i=0; i<framesPerBuffer; i++ )
-    {
-        if(i < 200 and overflow != NULL){
-           outL = buffer[0][i] + overflow[0][i];
-           outR = buffer[1][i] + overflow[1][i];
-          if(outL > 1.0){
-            outL = 1.0;
-          }
-          if(outR > 1.0){
-            outR = 1.0;
-          }
-
-          *out++ = outL;//buffer[0][i] + overflow[0][i];
-          *out++ = outR;//buffer[1][i] + overflow[1][i];
-        } else{
-          *out++ = buffer[0][i];
-          *out++ = buffer[1][i];
-        }
-    }
-	printf("Lorem Ipsum\n");
-
-	//this should make audio truer for frames smaller than 200
-	//it might not though, need to go through math
-	for(i = framesPerBuffer; i < 199 && overflow != NULL; i++){
-		newOverflow[0][i] += overflow[0][i];
-		newOverflow[1][i] += overflow[1][i];
-
+		//Set remainder of buffer
+		if(bufferIntern->size() >= framesPerBuffer*2 - length)
+			length = framesPerBuffer*2 - length;
+		else
+			length  = bufferIntern->size();
+		if(!bufferIntern->empty())
+			std::copy(bufferIntern->begin(), (bufferIntern->begin()+length), std::back_inserter(buffer));
 	}
-	if(overflow != NULL){
-	delete[] overflow[0];
-	delete[] overflow[1];
-	delete[] overflow;}
+	//bufferLocked = false;
+	//write_index =(write_index + framesPerBuffer)%bufferMax;
+	printf("AFTER copy%s\n", bufferLocked ? "true" : "false");
 
-    overflow = newOverflow;
+	for(int i = 0; i < framesPerBuffer; i++){
+		if(!buffer.empty() && buffer.size() > 1){
+			//should only read
+			*out++ = buffer.front();
+			buffer.pop_front();
+			*out++ = buffer.front();
+			buffer.pop_front();
+		} else {
+			*out++ = 0.0;
+			*out++ = 0.0;
+			printf("No more data in buffer at i = \t%d", i);
+		}
+	}
+	printf("%s\n", bufferLocked ? "true" : "false");
+
+	timingCounter = timingCounter + framesPerBuffer;
+	printf("%lf\n", timingCounter/44100.0 );
+	//while(bufferLocked){};
+
+	//bufferLocked = true;
+
+	for(int i = 0; i < length && !bufferIntern->empty(); i++){
+		bufferIntern->pop_front();
+	}
+
+	//updateBuffer(0);
+	//bufferLocked = false;
+
+	/*
+
 
 	delete[] buffer[0];
 	delete[] buffer[1];
@@ -191,9 +196,11 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
 
 
     timingCounter = timingCounter + framesPerBuffer;
-    printf("%d\n", framesPerBuffer);
+    //printf("%d\n", framesPerBuffer);
+
    // index = index + framesPerBuffer;
-    (void) timeInfo; /* Prevent unused variable warnings. */
+   /* Prevent unused variable warnings. */
+    (void) timeInfo;
     (void) statusFlags;
     (void) inputBuffer;
 
@@ -215,14 +222,12 @@ int AudioPlayer::paCallback( const void *inputBuffer, void *outputBuffer,
     /* Here we cast userData to AudioProcessor* type so we can call the instance method paCallbackMethod, we can do that since
        we called Pa_OpenStream with 'this' for userData */
 
-
     return ((AudioPlayer*)userData)->paCallbackMethod(inputBuffer, outputBuffer,
         framesPerBuffer,
         timeInfo,
         statusFlags);
 
 }
-
 
 void AudioPlayer::paStreamFinishedMethod()
 {
@@ -237,4 +242,94 @@ void AudioPlayer::paStreamFinishedMethod()
  void AudioPlayer::paStreamFinished(void* userData)
 {
     return ((AudioPlayer*)userData)->paStreamFinishedMethod();
+}
+
+int AudioPlayer::buffer_enque(std::vector<double> * data){
+	std::copy(data->begin(), data->end(), bufferExtern->end());
+	//updateBuffer(0);
+
+	return 0;
+}
+
+int AudioPlayer::buffer_enque(double * data, int length){
+	//TODO: probably not effecient, look for something similar to the vector copy
+//	if(bufferSize < bufferMax){
+printf("BUFFER_ENQUE%s\n", bufferLocked ? "true" : "false");
+
+	while(bufferLocked){}
+	printf("%s\n", bufferLocked ? "true" : "false");
+
+	//bufferLocked = true;
+		int i = 0;
+		for( i = 0; i < length && bufferSize + i < bufferMax; i++){
+			/*printf("%d\n",i );
+			printf("%E\n", data[i] );
+			printf("hewwo\n");
+			printf("%lu\n", buffer2.max_size());
+
+*/
+//printf("%d%s\n", i, bufferLocked ? "true" : "false");
+
+			bufferExtern->push_back(data[i]);
+			//printf("bai\n");
+
+		}
+		bufferSize = bufferExtern->size();
+		//bufferLocked = false;
+	//}
+	//updateBuffer(0);
+
+	return 0;
+}
+
+int AudioPlayer::buffer_clear(){
+	bufferNeedsToClear = true;
+	return 0;
+}
+
+int AudioPlayer::getBufferMax(){
+	return bufferMax;
+}
+
+void AudioPlayer::setBufferMax(int max){
+	bufferMax = max;
+}
+
+
+int AudioPlayer::buffer_size(){
+	return bufferSize;
+}
+
+
+int AudioPlayer::updateBuffer(int removeLength){
+	//return 0;
+	if(!bufferLocked && bufferNeedsToClear){
+		bufferExtern->clear();
+		bufferNeedsToClear = false;
+		bufferSize = 0;
+		return 0;
+	} else {
+		if(bufferLocked){
+			printf("Buffer is Still Locked!\n");
+			return 0;
+		} else {
+		/*	printf("DEBUG: Before copy!\n");
+			if(bufferSize < bufferMax){
+				if(bufferSize + buffer2.size() <= bufferMax){
+					std::copy(buffer2.begin(), buffer2.end(), std::back_inserter(buffer));
+					bufferSize += buffer2.size();
+				}
+				else{
+					printf("over max somewhat");//not working
+					int distance = bufferMax - buffer.size();
+					std::copy(buffer2.begin(), (buffer2.end()), std::back_inserter(buffer));
+					bufferSize += buffer2.size();
+				}
+				buffer2.clear();
+			} else
+				printf("Max BUFFER SIZE FOOL!\n");*/
+			return 0;
+		}
+	}
+	return -1;
 }
