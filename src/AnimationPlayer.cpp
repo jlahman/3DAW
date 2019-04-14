@@ -195,10 +195,10 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
     buffer[1][i] = 0;
   }
 
-  for(int i =0; i< 200; i++){
-    overflow[0][i] = 0;
-    overflow[1][i] = 0;
-  }
+ // for(int i =0; i< 200; i++){
+//    overflow[0][i] = 0;
+//    overflow[1][i] = 0;
+ // }
 printf("after init\n");
   if(ssl.empty()){ printf("ssl empty\n");
     return;

@@ -15,6 +15,8 @@ AudioPlayer::AudioPlayer()
 	buffer.push_back(0.0);
 	buffer.push_back(0.0);
 
+	printf("%d\n", buffer2.max_size());
+
 }
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
@@ -180,7 +182,7 @@ void AudioPlayer::paStreamFinishedMethod()
 
 int AudioPlayer::buffer_enque(std::vector<double> * data){
 	std::copy(data->begin(), data->end(), buffer2.end());
-	updateBuffer(0);
+	//updateBuffer(0);
 
 	return 0;
 }
@@ -190,10 +192,16 @@ int AudioPlayer::buffer_enque(double * data, int length){
 	printf("rwarxrdlk;ajsdf\n" );
 	for(int i = 0; i < length; i++){
 		printf("%d\n",i );
+		printf("%E\n", data[i] );
+		printf("hewwo\n");
+		printf("%lu\n", buffer2.max_size());
+
 
 		buffer2.push_back(data[i]);
+		printf("bai\n");
+
 	}
-	updateBuffer(0);
+	//updateBuffer(0);
 
 	return 0;
 }
@@ -205,7 +213,7 @@ int AudioPlayer::buffer_clear(){
 
 
 int AudioPlayer::updateBuffer(int removeLength){
-	return 0;
+	//return 0;
 	if(!bufferLocked && bufferNeedsToClear){
 		buffer.clear();
 		return 0;

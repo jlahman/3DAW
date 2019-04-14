@@ -6,6 +6,8 @@
 
 #include"Track.h"
 #include"util.h"
+#include"AudioPlayer.h"
+
 #include"AnimationPlayer.h"
 
 #define NUM_SECONDS   (16)
@@ -15,7 +17,7 @@ int main(int argc,  char * argv[])
 {
 
     //PaError err;
-    //AudioPlayer* ap;
+    AudioPlayer ap = AudioPlayer();
     AnimationPlayer * anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
 
     trackList.push_back(new Track("../data/test.wav"));
@@ -63,7 +65,7 @@ int main(int argc,  char * argv[])
 
 	printf("PortAudio Test\n");
 
-	//ap->buffer_enque(audioOutInterlaced, audioOutSize);
+	ap.buffer_enque(audioOutInterlaced, audioOutSize);
 
 
 	//delete[] audioOutInterlaced;
