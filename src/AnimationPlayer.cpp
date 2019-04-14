@@ -185,7 +185,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
     buffer[1][i] = 0;
   }
 
-  for(int i =0; i< 200; i++){
+  for(int i =0; i< 199; i++){
     overflow[0][i] = 0;
     overflow[1][i] = 0;
   }
