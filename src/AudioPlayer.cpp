@@ -13,7 +13,6 @@ AudioPlayer::AudioPlayer()
 	bufferIntern = &bufferSwap1;
 	bufferExtern = &bufferSwap2;
 
-
 }
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
