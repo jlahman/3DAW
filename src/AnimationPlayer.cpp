@@ -182,7 +182,6 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 	convDataL = new double[convDataSize];
 	convDataR = new double[convDataSize];
 
-
 	double frameTime = frameStart/44100.0;
 
 	std::vector<SoundSource*> ssl = getSources(frameTime);
@@ -196,7 +195,6 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
   for(int i =0; i< hrirLength-1; i++){
    	overflow[0][i] = 0;
    	overflow[1][i] = 0;
-
   }
 //printf("after init\n");
   if(ssl.empty()){ printf("ssl empty\n");
