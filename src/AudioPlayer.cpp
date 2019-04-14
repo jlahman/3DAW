@@ -166,6 +166,13 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
         }
     }
 
+	//this should make audio truer for frames smaller than 200
+	//it might not though, need to go through math
+	for(i = framesPerBuffer; i < 199 && overflow != NULL; i++){
+		newOverflow[0][i] += overflow[0][i];
+		newOverflow[1][i] += overflow[1][i];
+
+	}
     overflow = newOverflow;
 
     timingCounter = timingCounter + framesPerBuffer;
