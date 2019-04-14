@@ -1,9 +1,9 @@
-CC=clang
-CCV=-x c++
-CFLAGS= -g
+CC=gcc
+CCV=
+CFLAGS= -g -std=c++11
 DEPS = HRIR_Data.h util.h AnimationPlayer.h SoundSource.h Track.h KeyFrame.h AudioPlayer.h
 OBJ = util.o HRIR_Data.o Track.o SoundSource.o AnimationPlayer.o AudioPlayer.o KeyFrame.o main.o
-LIBS= -lavformat -lavcodec -lswresample -lavutil -lportaudio -lmatio -lstdc++ -lm
+LIBS= -lavformat -lavcodec -lswresample -lavutil -lportaudio -lmatio -lstdc++ -lm -lpthread
 LIBS_T= -lavformat -lavcodec -lswresample -lavutil -lmatio -lstdc++ -lm
 
 %.o: %.cpp $(DEPS)

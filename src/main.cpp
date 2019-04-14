@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <cstring>
-
+#include <thread>
 
 #include"Track.h"
 #include"util.h"
@@ -12,70 +12,110 @@
 
 #define NUM_SECONDS   (16)
 std::vector<Track*> trackList;
+AudioPlayer ap = AudioPlayer();
+AnimationPlayer * anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
+const int framesPerAnimationStep = 1024;
+int frameCount = 0;
+bool animePlay = true;
+bool done = false;
+
+const int frameStop = 44100 * 50 ;
+
+double ** audioOut = NULL;
+
+double ** overflow = NULL;
+
+void foo(){
+	while(!done){
+		while(ap.getBufferMax() > ap.buffer_size() && frameCount < frameStop && animePlay){
+			int writeLength = (ap.getBufferMax() - ap.buffer_size())/2;
+			printf("DEBUG: 1 \t%d \n", frameCount);
+
+			if(writeLength >= framesPerAnimationStep){
+				writeLength = framesPerAnimationStep;
+			}
+		//	printf("DEBUG: 2 \t%d \n", frameCount);
+
+			audioOut  = new double*[2];
+			audioOut[0] = new double[writeLength];
+			audioOut[1] = new double[writeLength];
+
+		//	printf("DEBUG: 3 \t%d \n", frameCount);
+
+			double ** newOverflow = new double*[2];
+			newOverflow[0] = new double[199];
+			newOverflow[1] = new double[199];
+
+			const int audioOutSize = 2*writeLength;
+			double *audioOutInterlaced = new double[audioOutSize];
+
+			//printf("DEBUG: 4 \t%d \n", frameCount);
+
+			anime->getBuffer(audioOut, newOverflow, frameCount, (const int)writeLength);
+			//printf("DEBUG: 5 \t%d \n", frameCount);
+
+			for(int i = 0; i < writeLength; i++){
+				//printf("%E\n", audioOut[0][i]);
+				if(overflow != NULL && i < 199){
+					audioOutInterlaced[2*i] = audioOut[0][i] + overflow[0][i];
+					audioOutInterlaced[2*i+ 1] = audioOut[1][i] + overflow[1][i];
+				} else {
+					audioOutInterlaced[2*i] = audioOut[0][i];
+					audioOutInterlaced[2*i+ 1] = audioOut[1][i];
+				}
+				//fprintf(stderr, "%f\n", audioOutInterlaced[i*2] );
+			}
+			//printf("DEBUG: 6 \t%d \n", frameCount);
+			for(int i = writeLength; i < writeLength + 199; i++){
+				//printf("%E\n", audioOut[0][i]);
+				if(overflow != NULL && i < 199){
+					newOverflow[0][199 - i ] += overflow[0][i - writeLength];
+					newOverflow[1][199 - i] += overflow[1][i - writeLength];
+				} else {
+					audioOutInterlaced[2*i] = audioOut[0][i];
+					audioOutInterlaced[2*i+ 1] = audioOut[1][i];
+				}
+				//fprintf(stderr, "%f\n", audioOutInterlaced[i*2] );
+			}
+			if(overflow != NULL){
+				delete[] overflow[0];
+				delete[] overflow[1];
+				delete[] overflow;
+			}
+
+			if(audioOut != NULL){
+				delete[] audioOut[0];
+				delete[] audioOut[1];
+				delete[] audioOut;
+			}
+
+
+			printf("DEBUG: 7 \t%d \n", frameCount);
+
+			overflow = newOverflow;
+			frameCount += writeLength;
+			ap.buffer_enque(audioOutInterlaced, audioOutSize);
+			//printf("%d \n", frameCount/framesPerAnimationStep);
+			if(audioOutInterlaced != NULL){
+				delete[] audioOutInterlaced;
+			}
+		}
+	}
+}
 
 int main(int argc,  char * argv[])
 {
 
     PaError err;
-    AudioPlayer ap = AudioPlayer();
-    AnimationPlayer * anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
 
     trackList.push_back(new Track("../data/souldfire.wav"));
-
 	anime->addSource("Narrator2", trackList[0]);
 	anime->test_KeyFrames("Narrator2");
 
+	//std::thread nice(foo);
 
-	const int framesPerAnimationStep = 4096;
-	int frameCount = 0;
-	bool animePlay = true;
-	const int frameStop = 44100 * 5 ;
-	const int audioOutSize = 2*frameStop;
-
-	double ** audioOut = new double*[2];
-	audioOut[0] = new double[framesPerAnimationStep];
-	audioOut[1] = new double[framesPerAnimationStep];
-
-	double ** overflow = new double*[2];
-	overflow[0] = new double[199];
-	overflow[1] = new double[199];
-
-	double *audioOutInterlaced = new double[audioOutSize];
-
-	//anime->getBuffer(audioOut, overflow, frameCount, (const int)framesPerAnimationStep);
-
-	/*for(int i = 0; i < frameStop; i++){
-		//printf("%E\n", audioOut[0][i]);
-		audioOutInterlaced[2*i] = audioOut[0][i];
-		audioOutInterlaced[2*i + 1] = audioOut[1][i];
-		//frameCount += framesPerAnimationStep;
-		//printf("%d\n", i);
-	}*/
-
-	printf("%d\n", frameStop*2-1);
-
-
-	while(ap.getBufferMax() > ap.buffer_size() && frameCount < frameStop){
-		anime->getBuffer(audioOut, overflow, frameCount, (const int)framesPerAnimationStep);
-
-		for(int i = 0; i < framesPerAnimationStep; i++){
-			//printf("%E\n", audioOut[0][i]);
-			audioOutInterlaced[2*i+frameCount*2] += audioOut[0][i];
-			audioOutInterlaced[2*i+frameCount*2+ 1] += audioOut[1][i];
-			//printf("%d\n", i);
-		}
-		for(int i = framesPerAnimationStep; i < framesPerAnimationStep+199 && i< audioOutSize; i++){
-			//printf("%E\n", audioOut[0][i]);
-			audioOutInterlaced[2*i+frameCount*2] = overflow[0][i-framesPerAnimationStep];
-			audioOutInterlaced[2*i+frameCount*2+ 1] = overflow[1][i-framesPerAnimationStep];
-			//printf("%d\n", i);
-		}
-		frameCount += framesPerAnimationStep;
-
-
-	}
-	ap.buffer_enque(audioOutInterlaced, audioOutSize);
-	ap.updateBuffer(0);//(audioOutInterlaced, audioOutSize);
+	//ap.buffer_enque(audioOutInterlaced, audioOutSize);
+	//ap.updateBuffer(0);//(audioOutInterlaced, audioOutSize);
 
 
 
@@ -94,17 +134,22 @@ int main(int argc,  char * argv[])
 	if (ap.open(Pa_GetDefaultOutputDevice()))
 	{
 		std::string input;
-		bool done = false;
+		done = false;
 		bool pause = true;
+		std::thread(foo).detach();
+		//nice.detach();
+		std::cin >> input;
+		Pa_Sleep(1000);
 
+		ap.start();
+		//done = true;
 		while(!done){
-
 			//handle input
 			std::cin >> input;
-			if(input == "pause"){
+			if(input == "p"){
 				pause = !pause;
 			} else if(input == "r") {
-				ap.restart();
+				frameCount = 0;
 			} else if(input == "q") {
 				done = true;
 			} else if(input == "add") {
@@ -119,62 +164,33 @@ int main(int argc,  char * argv[])
 					printf("%d\n", trackList.size() );
 				}
 			} else if(input == "recompute") {
-				ap.stop();
-				ap.buffer_clear();
-				ap.updateBuffer(0);
+
 				frameCount = 0;
-				while(ap.getBufferMax() > ap.buffer_size() && frameCount < frameStop){
-					anime->getBuffer(audioOut, overflow, frameCount, (const int)framesPerAnimationStep);
-
-					for(int i = 0; i < framesPerAnimationStep; i++){
-						//printf("%E\n", audioOut[0][i]);
-						audioOutInterlaced[2*i+frameCount*2] += audioOut[0][i];
-						audioOutInterlaced[2*i+frameCount*2+ 1] += audioOut[1][i];
-						//printf("%d\n", i);
-					}
-					for(int i = framesPerAnimationStep; i < framesPerAnimationStep+199 && i< audioOutSize; i++){
-						//printf("%E\n", audioOut[0][i]);
-						audioOutInterlaced[2*i+frameCount*2] = overflow[0][i-framesPerAnimationStep];
-						audioOutInterlaced[2*i+frameCount*2+ 1] = overflow[1][i-framesPerAnimationStep];
-						//printf("%d\n", i);
-					}
-					frameCount += framesPerAnimationStep;
-
-
-				}
-				ap.buffer_enque(audioOutInterlaced, audioOutSize);
-				ap.updateBuffer(0);//(audioOutInterlaced, audioOutSize);
 
 			}
 
 			if (!pause)
-			{		ap.start();
+			{
+				ap.start();
+				animePlay = true;
 
 				//printf("Play\n" );
 			} else {
-				//printf("Pause\n" );
 				ap.stop();
+				//printf("Pause\n" );
+				animePlay = false;
 			}
 		}
 		ap.close();
+		//nice.~thread();
 	}
 
 	Pa_Terminate();
 	printf("Test finished.\n");
 
-	delete[] audioOut[0];
-	delete[] audioOut[1];
-	delete[] audioOut;
 	printf("PortAudio Test\n");
 
-	delete[] overflow[1];	printf("PortAudio Test\n");
-	overflow[1] = NULL;
-	delete[] overflow[0];	printf("PortAudio Test\n");
-	overflow[0] = NULL;
-	delete[] overflow;	printf("PortAudio Test\n");
-	overflow = NULL;
-
-	delete[] audioOutInterlaced;
+	//delete[] audioOutInterlaced;
 
 
 	return err;

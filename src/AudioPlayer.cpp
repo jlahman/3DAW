@@ -34,7 +34,7 @@ printf("helllo\n");
         NULL, /* no input */
         &outputParameters,
         44100,
-        512,//paFramesPerBufferUnspecified,//FRAMES_PER_BUFFER,//22050/8,
+        paFramesPerBufferUnspecified,//FRAMES_PER_BUFFER,//22050/8,
         paNoFlag,
         &AudioPlayer::paCallback,
         this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
@@ -106,26 +106,48 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     PaStreamCallbackFlags statusFlags)
 {
 	//printf("PaCallBack\n");
-	bufferLocked = true;
     float* out = (float *) outputBuffer;
+	printf("BEFORE %s\n", bufferLocked ? "true" : "false");
+
+	while(bufferLocked){};
+bufferLocked = true;
+	//std::vector<double> tempBuffer;
+	printf("%s\n", bufferLocked ? "true" : "false");
+	int length = buffer2.size();
+	if(length >= framesPerBuffer*2) length = framesPerBuffer*2;
+	if(!buffer2.empty())
+		std::copy(buffer2.begin(), (buffer2.begin()+length), std::back_inserter(buffer));
+	//bufferLocked = false;
+	//write_index =(write_index + framesPerBuffer)%bufferMax;
+	printf("AFTER copy%s\n", bufferLocked ? "true" : "false");
+
 	for(int i = 0; i < framesPerBuffer; i++){
 		if(!buffer.empty() && buffer.size() > 1){
+			//should only read
 			*out++ = buffer.front();
 			buffer.pop_front();
 			*out++ = buffer.front();
 			buffer.pop_front();
-			bufferSize -= 2;
-			if(bufferSize == 0) printf("WE DID IT\tLKJLKJL:JK:KJ\n");
 		} else {
 			*out++ = 0.0;
 			*out++ = 0.0;
-			//printf("No more data in buffer at i = \t%d", i);
+			printf("No more data in buffer at i = \t%d", i);
 		}
 	}
+	printf("%s\n", bufferLocked ? "true" : "false");
+
 	timingCounter = timingCounter + framesPerBuffer;
 	printf("%lf\n", timingCounter/44100.0 );
-	bufferLocked = false;
+	//while(bufferLocked){};
+
+	bufferLocked = true;
+
+	for(int i = 0; i < length && !buffer2.empty(); i ++){
+		buffer2.pop_front();
+		bufferSize -= 1;
+	}
 	//updateBuffer(0);
+	bufferLocked = false;
 
 	/*
 
@@ -187,18 +209,28 @@ int AudioPlayer::buffer_enque(std::vector<double> * data){
 int AudioPlayer::buffer_enque(double * data, int length){
 	//TODO: probably not effecient, look for something similar to the vector copy
 //	if(bufferSize < bufferMax){
-		for(int i = 0; i < length; i++){
+printf("BUFFER_ENQUE%s\n", bufferLocked ? "true" : "false");
+
+	while(bufferLocked){}
+	printf("%s\n", bufferLocked ? "true" : "false");
+
+	bufferLocked = true;
+		int i = 0;
+		for( i = 0; i < length && bufferSize + i < bufferMax; i++){
 			/*printf("%d\n",i );
 			printf("%E\n", data[i] );
 			printf("hewwo\n");
 			printf("%lu\n", buffer2.max_size());
 
 */
+//printf("%d%s\n", i, bufferLocked ? "true" : "false");
+
 			buffer2.push_back(data[i]);
 			//printf("bai\n");
 
-		}		printf("rwarxrdlk;ajsdf\n" );
-
+		}
+		bufferSize += i;printf("%d\t%d\n", bufferSize, bufferMax);
+		bufferLocked = false;
 	//}
 	//updateBuffer(0);
 
@@ -227,7 +259,7 @@ int AudioPlayer::buffer_size(){
 int AudioPlayer::updateBuffer(int removeLength){
 	//return 0;
 	if(!bufferLocked && bufferNeedsToClear){
-		buffer.clear();
+		buffer2.clear();
 		bufferNeedsToClear = false;
 		bufferSize = 0;
 		return 0;
@@ -236,7 +268,7 @@ int AudioPlayer::updateBuffer(int removeLength){
 			printf("Buffer is Still Locked!\n");
 			return 0;
 		} else {
-			printf("DEBUG: Before copy!\n");
+		/*	printf("DEBUG: Before copy!\n");
 			if(bufferSize < bufferMax){
 				if(bufferSize + buffer2.size() <= bufferMax){
 					std::copy(buffer2.begin(), buffer2.end(), std::back_inserter(buffer));
@@ -250,7 +282,7 @@ int AudioPlayer::updateBuffer(int removeLength){
 				}
 				buffer2.clear();
 			} else
-				printf("Max BUFFER SIZE FOOL!\n");
+				printf("Max BUFFER SIZE FOOL!\n");*/
 			return 0;
 		}
 	}
