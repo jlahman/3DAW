@@ -182,6 +182,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 	convDataL = new double[convDataSize];
 	convDataR = new double[convDataSize];
 
+
 	double frameTime = frameStart/44100.0;
 
 	std::vector<SoundSource*> ssl = getSources(frameTime);
@@ -195,6 +196,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
   for(int i =0; i< hrirLength-1; i++){
    	overflow[0][i] = 0;
    	overflow[1][i] = 0;
+
   }
 //printf("after init\n");
   if(ssl.empty()){ printf("ssl empty\n");
@@ -229,6 +231,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
         }
       }
       frameTime += 1.0/44100.0;
+	  delete (*source)->getProperties();
     }
 	//printf("after loading datachunk\n");
 
@@ -252,6 +255,9 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 
 //	printf("after convolution\n");
 
+	delete[] hrirLL;
+	delete[] hrirLR;
+
     for(int i =0; i< length; i++){
 	//	printf("%d\t%E\n", i, convDataR[i]);
 
@@ -267,6 +273,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
       //printf("AudioDataChunk[%d]: %E\t|\t :[]\n", i, buffer[0][i]);
       //if(abs(buffer[0][i] - buffer[0][i-1]) > 0.2)
       //printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
+
 
     }
 	//printf("after assigning convdata to buffer\n");
@@ -285,6 +292,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
     }
 
   }
+
 
  // printf("BeforeDelete\n" );
   if(mDataChunk != NULL) delete[] mDataChunk;

@@ -13,6 +13,7 @@ AudioPlayer::AudioPlayer()
 	bufferIntern = &bufferSwap1;
 	bufferExtern = &bufferSwap2;
 
+
 }
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
@@ -187,8 +188,16 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
 
 	/*
 
+
+	delete[] buffer[0];
+	delete[] buffer[1];
+	delete[] buffer;
+
+
+
     timingCounter = timingCounter + framesPerBuffer;
     //printf("%d\n", framesPerBuffer);
+
    // index = index + framesPerBuffer;
    /* Prevent unused variable warnings. */
     (void) timeInfo;
