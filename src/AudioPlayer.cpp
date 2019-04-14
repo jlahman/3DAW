@@ -10,6 +10,8 @@ AudioPlayer::AudioPlayer()
     timingCounter = 0;
 	bufferMax = 2*44100*1.5;
 	bufferSize = 0;// 2*44100*1.5;
+	bufferIntern = &bufferSwap1;
+	bufferExtern = &bufferSwap2;
 
 }
 
@@ -109,14 +111,48 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     float* out = (float *) outputBuffer;
 	printf("BEFORE %s\n", bufferLocked ? "true" : "false");
 
-	while(bufferLocked){};
-bufferLocked = true;
+//	while(bufferLocked){};
+//bufferLocked = true;
 	//std::vector<double> tempBuffer;
 	printf("%s\n", bufferLocked ? "true" : "false");
-	int length = buffer2.size();
-	if(length >= framesPerBuffer*2) length = framesPerBuffer*2;
-	if(!buffer2.empty())
-		std::copy(buffer2.begin(), (buffer2.begin()+length), std::back_inserter(buffer));
+	//get data for this frame
+	int length = bufferIntern->size();
+	if(length >= framesPerBuffer*2){
+		length = framesPerBuffer*2;
+		if(!bufferIntern->empty())
+			std::copy(bufferIntern->begin(), (bufferIntern->begin()+length), std::back_inserter(buffer));
+	} else {
+		if(!bufferIntern->empty())
+			std::copy(bufferIntern->begin(), (bufferIntern->begin()+length), std::back_inserter(buffer));
+
+		bufferIntern->clear();
+
+		//Switch buffer used for internal data
+		//set lock
+		bufferLocked = true;
+		//store pointer of intern,
+		std::deque<double> * temp = bufferIntern;
+		//set pointer of intern to other swap buffer
+		if(bufferIntern == &bufferSwap1){
+			bufferIntern = &bufferSwap2;
+		} else {
+			bufferIntern = &bufferSwap1;
+		}
+		//set extern to stored
+		bufferExtern = temp;
+		//reset bufferSize
+		bufferSize = bufferExtern->size();
+		//release lock
+		bufferLocked = false;
+
+		//Set remainder of buffer
+		if(bufferIntern->size() >= framesPerBuffer*2 - length)
+			length = framesPerBuffer*2 - length;
+		else
+			length  = bufferIntern->size();
+		if(!bufferIntern->empty())
+			std::copy(bufferIntern->begin(), (bufferIntern->begin()+length), std::back_inserter(buffer));
+	}
 	//bufferLocked = false;
 	//write_index =(write_index + framesPerBuffer)%bufferMax;
 	printf("AFTER copy%s\n", bufferLocked ? "true" : "false");
@@ -140,14 +176,14 @@ bufferLocked = true;
 	printf("%lf\n", timingCounter/44100.0 );
 	//while(bufferLocked){};
 
-	bufferLocked = true;
+	//bufferLocked = true;
 
-	for(int i = 0; i < length && !buffer2.empty(); i ++){
-		buffer2.pop_front();
-		bufferSize -= 1;
+	for(int i = 0; i < length && !bufferIntern->empty(); i++){
+		bufferIntern->pop_front();
 	}
+
 	//updateBuffer(0);
-	bufferLocked = false;
+	//bufferLocked = false;
 
 	/*
 
@@ -200,7 +236,7 @@ void AudioPlayer::paStreamFinishedMethod()
 }
 
 int AudioPlayer::buffer_enque(std::vector<double> * data){
-	std::copy(data->begin(), data->end(), buffer2.end());
+	std::copy(data->begin(), data->end(), bufferExtern->end());
 	//updateBuffer(0);
 
 	return 0;
@@ -214,7 +250,7 @@ printf("BUFFER_ENQUE%s\n", bufferLocked ? "true" : "false");
 	while(bufferLocked){}
 	printf("%s\n", bufferLocked ? "true" : "false");
 
-	bufferLocked = true;
+	//bufferLocked = true;
 		int i = 0;
 		for( i = 0; i < length && bufferSize + i < bufferMax; i++){
 			/*printf("%d\n",i );
@@ -225,12 +261,12 @@ printf("BUFFER_ENQUE%s\n", bufferLocked ? "true" : "false");
 */
 //printf("%d%s\n", i, bufferLocked ? "true" : "false");
 
-			buffer2.push_back(data[i]);
+			bufferExtern->push_back(data[i]);
 			//printf("bai\n");
 
 		}
-		bufferSize += i;printf("%d\t%d\n", bufferSize, bufferMax);
-		bufferLocked = false;
+		bufferSize = bufferExtern->size();
+		//bufferLocked = false;
 	//}
 	//updateBuffer(0);
 
@@ -259,7 +295,7 @@ int AudioPlayer::buffer_size(){
 int AudioPlayer::updateBuffer(int removeLength){
 	//return 0;
 	if(!bufferLocked && bufferNeedsToClear){
-		buffer2.clear();
+		bufferExtern->clear();
 		bufferNeedsToClear = false;
 		bufferSize = 0;
 		return 0;

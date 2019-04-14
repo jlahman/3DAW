@@ -64,10 +64,15 @@ private:
     char message[20];
     //double **overflow = NULL;
 	std::deque<double> buffer;
-	std::deque<double> buffer2; //TODO: think of a better name for its role
+	std::deque<double> bufferSwap1; //TODO: think of a better name for its role
+	std::deque<double> bufferSwap2; //TODO: think of a better name for its role
+	std::deque<double> *bufferExtern; //TODO: think of a better name for its role
+	std::deque<double> *bufferIntern; //TODO: think of a better name for its role
 
 	bool bufferLocked = false;
 	bool bufferNeedsToClear = false;
+
+
 	std::deque<double> dataToEnque;
 
 	int bufferSize;

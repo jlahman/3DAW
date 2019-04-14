@@ -66,16 +66,10 @@ void foo(){
 				//fprintf(stderr, "%f\n", audioOutInterlaced[i*2] );
 			}
 			//printf("DEBUG: 6 \t%d \n", frameCount);
-			for(int i = writeLength; i < writeLength + 199; i++){
-				//printf("%E\n", audioOut[0][i]);
-				if(overflow != NULL && i < 199){
-					newOverflow[0][199 - i ] += overflow[0][i - writeLength];
-					newOverflow[1][199 - i] += overflow[1][i - writeLength];
-				} else {
-					audioOutInterlaced[2*i] = audioOut[0][i];
-					audioOutInterlaced[2*i+ 1] = audioOut[1][i];
-				}
-				//fprintf(stderr, "%f\n", audioOutInterlaced[i*2] );
+			for(int i = writeLength; i < 199 && overflow != NULL; i++){
+				newOverflow[0][i-writeLength] += overflow[0][i];
+				newOverflow[1][i-writeLength] += overflow[1][i];
+
 			}
 			if(overflow != NULL){
 				delete[] overflow[0];
