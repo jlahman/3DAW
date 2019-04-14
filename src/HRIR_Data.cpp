@@ -173,4 +173,6 @@ double HRIR_Data::findClosestWeightedIndex(double *arr, int length, double value
     }
   }
 
+  return -1;
+
 }

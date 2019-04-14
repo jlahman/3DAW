@@ -174,20 +174,17 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
   //frameStart = frameStart - 197;
   	double * audioData;
 
-	printf("before new\n");
+//	printf("before new\n");
 
-	//shouldn't be doing memory allocation or deallocation in paCallBackMethod
 	mDataChunk = new double[sourceChunkSize];
-	printf("after new\n");
+//	printf("after new\n");
 
 	convDataL = new double[convDataSize];
 	convDataR = new double[convDataSize];
-	//hrirLL = new double[200];
-	//hrirLR = new double[200];
 
-  double frameTime = frameStart/44100.0;
+	double frameTime = frameStart/44100.0;
 
-  std::vector<SoundSource*> ssl = getSources(frameTime);
+	std::vector<SoundSource*> ssl = getSources(frameTime);
 
 
   for(int i =0; i< length; i++){
@@ -195,11 +192,11 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
     buffer[1][i] = 0;
   }
 
- // for(int i =0; i< 200; i++){
-//    overflow[0][i] = 0;
-//    overflow[1][i] = 0;
- // }
-printf("after init\n");
+  for(int i =0; i< hrirLength-1; i++){
+   	overflow[0][i] = 0;
+   	overflow[1][i] = 0;
+  }
+//printf("after init\n");
   if(ssl.empty()){ printf("ssl empty\n");
     return;
   }
@@ -233,7 +230,7 @@ printf("after init\n");
       }
       frameTime += 1.0/44100.0;
     }
-	printf("after loading datachunk\n");
+	//printf("after loading datachunk\n");
 
     Polar3D *p = (*source)->getProperties()->position;
 
@@ -241,25 +238,25 @@ printf("after init\n");
 
     int eleIndex = (int)hrir->getIndices(p->theta, p->phi)[1];
 
-    // interpolateHRIR_linear(aziIndex, eleIndex, true, hrirLL);
-	//convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);
+     interpolateHRIR_linear(aziIndex, eleIndex, true, hrirLL);
+	convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);
 	//delete[] hrirLL;
-	printf("after interp of hrir\n");
+//	printf("after interp of hrir\n");
 
 
-    //interpolateHRIR_linear(aziIndex, eleIndex, false, hrirLR);
-	//convolve(mDataChunk, sourceChunkSize, hrirLR, 200, convDataR);
+    interpolateHRIR_linear(aziIndex, eleIndex, false, hrirLR);
+	convolve(mDataChunk, sourceChunkSize, hrirLR, 200, convDataR);
 
     //printf("%d\n", (int)p->theta);
 	//delete[] hrirLR;
 
-	printf("after convolution\n");
+//	printf("after convolution\n");
 
     for(int i =0; i< length; i++){
-		printf("%d\t%E\n", i, convDataR[i]);
+	//	printf("%d\t%E\n", i, convDataR[i]);
 
-     // buffer[0][i] += convDataL[i];
-      //buffer[1][i] += convDataR[i];
+      buffer[0][i] += convDataL[i];
+      buffer[1][i] += convDataR[i];
       if(abs(buffer[0][i]) > 1.0){
         buffer[0][i] = buffer[0][i]/abs(buffer[0][i]);
       }
@@ -268,12 +265,12 @@ printf("after init\n");
       }
       //if(i < 100 || i > length -100)
       //printf("AudioDataChunk[%d]: %E\t|\t :[]\n", i, buffer[0][i]);
-      if(abs(buffer[0][i] - buffer[0][i-1]) > 0.2)
-      printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
+      //if(abs(buffer[0][i] - buffer[0][i-1]) > 0.2)
+      //printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 
     }
-	printf("after assigning convdata to buffer\n");
-/*
+	//printf("after assigning convdata to buffer\n");
+
     for(int i =length; i< length + 199; i++){
       overflow[0][i-length] += convDataL[i];
       overflow[1][i-length] += convDataR[i];
@@ -282,21 +279,22 @@ printf("after init\n");
       }
       if(abs(overflow[1][i-length]) > 1.0){
         overflow[1][i-length] = overflow[1][i-length]/abs(overflow[1][i-length]);
-      }*/
+      }
       //printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 
-    //}
+    }
 
   }
 
-  printf("BeforeDelete\n" );
+ // printf("BeforeDelete\n" );
   if(mDataChunk != NULL) delete[] mDataChunk;
-  printf("AfterDelet e\n" );
+ // printf("AfterDelet e\n" );
  // printf("afterNew\n");
   if(convDataL != NULL)
   delete[] convDataL;
   if(convDataR != NULL)
-  delete[] convDataR;  printf("AfterDelet e\n" );
+  delete[] convDataR;
+  // printf("AfterDelet e\n" );
 
 
 }

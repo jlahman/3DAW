@@ -1,4 +1,5 @@
 #include"util.h"
+#include<unistd.h>
 
 extern "C" {
   #include<libavutil/opt.h>
@@ -104,7 +105,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
    av_opt_set_int(swr, "out_channel_layout", AV_CH_LAYOUT_MONO, 0);
    av_opt_set_int(swr, "in_sample_rate", pCodecParameters->sample_rate, 0);
    av_opt_set_int(swr, "out_sample_rate", 44100, 0);
-   av_opt_set_sample_fmt(swr, "in_sample_fmt",  (AVSampleFormat)pCodecParameters->format, 0);
+   av_opt_set_sample_fmt(swr, "in_sample_fmt",  (AVSampleFormat)(pCodecParameters->format), 0);
    av_opt_set_sample_fmt(swr, "out_sample_fmt", AV_SAMPLE_FMT_DBL,  0);
    swr_init(swr);
    if (!swr_is_initialized(swr)) {
@@ -119,7 +120,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
        response = avcodec_send_packet(pCodecContext, pPacket);
        if(response < 0){
          fprintf(stderr, "ERROR sending packet\n");
-         //return response
+         return response;
          break;
        }
        //decode all frames in the packet
@@ -143,11 +144,15 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
            //write to data
            double* buffer;
            av_samples_alloc((uint8_t**) &buffer, NULL, 1, pFrame->nb_samples, AV_SAMPLE_FMT_DBL, 0);
+           //usleep(1000);
            int frame_count = swr_convert(swr, (uint8_t**) &buffer, pFrame->nb_samples, (const uint8_t**) pFrame->data, pFrame->nb_samples);
            // append resampled frames to data
+           //usleep(100);
+
            *data = (double*) realloc(*data, (*size + pFrame->nb_samples) * sizeof(double));
            memcpy(*data + *size, buffer, frame_count * sizeof(double));
            *size += frame_count;
+          // printf("%d\n", *size);
 
          }
          av_frame_unref(pFrame);
@@ -156,6 +161,7 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
      }
      av_packet_unref(pPacket);
    }
+   return 0;
 }
 
 double lerp(double y0, double y1, double x, double x0, double x1){

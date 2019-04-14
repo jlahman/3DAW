@@ -30,10 +30,15 @@ public:
     bool stop();
     bool restart();
 
+	int updateBuffer(int removeLength);
+
 	//buffer operations
 	int buffer_enque(double * data, int length);
 	int buffer_enque(std::vector<double> * data);
 	int buffer_clear();
+	int getBufferMax();
+	void setBufferMax(int max);
+	int buffer_size();
 	//std::vector<double> buffer_deque(int length);
 
 
@@ -52,7 +57,6 @@ private:
     void paStreamFinishedMethod();
     static void paStreamFinished(void* userData);
 
-	int updateBuffer(int removeLength);
 
     PaStream *stream = NULL;
     //HRIR_Data *hrir;
@@ -65,6 +69,9 @@ private:
 	bool bufferLocked = false;
 	bool bufferNeedsToClear = false;
 	std::deque<double> dataToEnque;
+
+	int bufferSize;
+	int bufferMax;
 
 };
 #endif

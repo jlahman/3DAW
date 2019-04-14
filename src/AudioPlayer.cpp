@@ -1,9 +1,5 @@
 /*
-* Skeleton Example code was taken from paex_sine_c++.cpp
-  TODO: should this be purely an audio player? Take out all data processing and put that in a seperate class?
-        How to get the final buffer data to the audio player?
-        If not realtime could have a function to change pointer to data? would realtime make be any different?
- */
+* Skeleton Example code was taken from paex_sine_c++.cpp*/
 #include<iostream>
 #include<algorithm>
 #include"AudioPlayer.h"
@@ -12,10 +8,8 @@ AudioPlayer::AudioPlayer()
 {
     /* initialise variables */
     timingCounter = 0;
-	buffer.push_back(0.0);
-	buffer.push_back(0.0);
-
-	printf("%d\n", buffer2.max_size());
+	bufferMax = 2*44100*1.5;
+	bufferSize = 0;// 2*44100*1.5;
 
 }
 
@@ -40,7 +34,7 @@ printf("helllo\n");
         NULL, /* no input */
         &outputParameters,
         44100,
-        paFramesPerBufferUnspecified,//FRAMES_PER_BUFFER,//22050/8,
+        512,//paFramesPerBufferUnspecified,//FRAMES_PER_BUFFER,//22050/8,
         paNoFlag,
         &AudioPlayer::paCallback,
         this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
@@ -91,7 +85,7 @@ bool AudioPlayer::restart()
 {
     if (stream == 0)
         return false;
-
+//updateBuffer(0);
     timingCounter = 0;
     return true;
 }
@@ -111,24 +105,27 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     const PaStreamCallbackTimeInfo* timeInfo,
     PaStreamCallbackFlags statusFlags)
 {
-	printf("PaCallBack\n");
+	//printf("PaCallBack\n");
 	bufferLocked = true;
-    unsigned long i;
     float* out = (float *) outputBuffer;
 	for(int i = 0; i < framesPerBuffer; i++){
-		if(!buffer.empty()){
+		if(!buffer.empty() && buffer.size() > 1){
 			*out++ = buffer.front();
 			buffer.pop_front();
 			*out++ = buffer.front();
 			buffer.pop_front();
+			bufferSize -= 2;
+			if(bufferSize == 0) printf("WE DID IT\tLKJLKJL:JK:KJ\n");
 		} else {
 			*out++ = 0.0;
 			*out++ = 0.0;
-			printf("No more data in buffer at i = \t%d", i);
+			//printf("No more data in buffer at i = \t%d", i);
 		}
 	}
-
+	timingCounter = timingCounter + framesPerBuffer;
+	printf("%lf\n", timingCounter/44100.0 );
 	bufferLocked = false;
+	//updateBuffer(0);
 
 	/*
 
@@ -189,18 +186,20 @@ int AudioPlayer::buffer_enque(std::vector<double> * data){
 
 int AudioPlayer::buffer_enque(double * data, int length){
 	//TODO: probably not effecient, look for something similar to the vector copy
-	printf("rwarxrdlk;ajsdf\n" );
-	for(int i = 0; i < length; i++){
-		printf("%d\n",i );
-		printf("%E\n", data[i] );
-		printf("hewwo\n");
-		printf("%lu\n", buffer2.max_size());
+//	if(bufferSize < bufferMax){
+		for(int i = 0; i < length; i++){
+			/*printf("%d\n",i );
+			printf("%E\n", data[i] );
+			printf("hewwo\n");
+			printf("%lu\n", buffer2.max_size());
 
+*/
+			buffer2.push_back(data[i]);
+			//printf("bai\n");
 
-		buffer2.push_back(data[i]);
-		printf("bai\n");
+		}		printf("rwarxrdlk;ajsdf\n" );
 
-	}
+	//}
 	//updateBuffer(0);
 
 	return 0;
@@ -211,22 +210,47 @@ int AudioPlayer::buffer_clear(){
 	return 0;
 }
 
+int AudioPlayer::getBufferMax(){
+	return bufferMax;
+}
+
+void AudioPlayer::setBufferMax(int max){
+	bufferMax = max;
+}
+
+
+int AudioPlayer::buffer_size(){
+	return bufferSize;
+}
+
 
 int AudioPlayer::updateBuffer(int removeLength){
 	//return 0;
 	if(!bufferLocked && bufferNeedsToClear){
 		buffer.clear();
+		bufferNeedsToClear = false;
+		bufferSize = 0;
 		return 0;
 	} else {
 		if(bufferLocked){
 			printf("Buffer is Still Locked!\n");
 			return 0;
-		} else {			printf("DEBUG: Before copy!\n");
-			if(true){printf("DONEON: Before copy!\n");
-				buffer.push_back(buffer2.front());printf("DONEON: AFTER copy!\n");
+		} else {
+			printf("DEBUG: Before copy!\n");
+			if(bufferSize < bufferMax){
+				if(bufferSize + buffer2.size() <= bufferMax){
+					std::copy(buffer2.begin(), buffer2.end(), std::back_inserter(buffer));
+					bufferSize += buffer2.size();
+				}
+				else{
+					printf("over max somewhat");//not working
+					int distance = bufferMax - buffer.size();
+					std::copy(buffer2.begin(), (buffer2.end()), std::back_inserter(buffer));
+					bufferSize += buffer2.size();
+				}
+				buffer2.clear();
 			} else
-				std::copy(buffer2.begin(), buffer2.end(), buffer.end());
-			printf("RAWR: Before copy!\n");
+				printf("Max BUFFER SIZE FOOL!\n");
 			return 0;
 		}
 	}
