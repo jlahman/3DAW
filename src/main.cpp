@@ -34,13 +34,13 @@ void foo(){
 			if(writeLength >= framesPerAnimationStep){
 				writeLength = framesPerAnimationStep;
 			}
-		//	printf("DEBUG: 2 \t%d \n", frameCount);
+			printf("DEBUG: 2 \t%d \n", frameCount);
 
 			audioOut  = new double*[2];
 			audioOut[0] = new double[writeLength];
 			audioOut[1] = new double[writeLength];
 
-		//	printf("DEBUG: 3 \t%d \n", frameCount);
+			printf("DEBUG: 3 \t%d \n", frameCount);
 
 			double ** newOverflow = new double*[2];
 			newOverflow[0] = new double[199];
@@ -49,10 +49,10 @@ void foo(){
 			const int audioOutSize = 2*writeLength;
 			double *audioOutInterlaced = new double[audioOutSize];
 
-			//printf("DEBUG: 4 \t%d \n", frameCount);
+			printf("DEBUG: 4 \t%d \n", frameCount);
 
 			anime->getBuffer(audioOut, newOverflow, frameCount, (const int)writeLength);
-			//printf("DEBUG: 5 \t%d \n", frameCount);
+			printf("DEBUG: 5 \t%d \n", frameCount);
 
 			for(int i = 0; i < writeLength; i++){
 				//printf("%E\n", audioOut[0][i]);
