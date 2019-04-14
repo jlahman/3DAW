@@ -245,7 +245,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
         buffer[1][i] = buffer[1][i]/abs(buffer[1][i]);
       }
       if(i < 100 || i > length -100)
-      printf("AudioDataChunk[%d]: %E\t|\t :[]\n", i, buffer[0][i]);
+     // printf("AudioDataChunk[%d]: %E\t|\t :[]\n", i, buffer[0][i]);
       if(abs(buffer[0][i] - buffer[0][i-1]) > 0.2)
       printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 

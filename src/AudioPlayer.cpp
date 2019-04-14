@@ -56,7 +56,7 @@ bool AudioPlayer::open(PaDeviceIndex indexx)
         NULL, /* no input */
         &outputParameters,
         44100,
-        FRAMES_PER_BUFFER,//22050/8,
+        64,//paFramesPerBufferUnspecified, //	FRAMES_PER_BUFFER,//22050/8,
         paNoFlag,
         &AudioPlayer::paCallback,
         this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
@@ -169,7 +169,7 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     overflow = newOverflow;
 
     timingCounter = timingCounter + framesPerBuffer;
-    //printf("%E\n", timingCounter/44100.0);
+    printf("%d\n", framesPerBuffer);
    // index = index + framesPerBuffer;
     (void) timeInfo; /* Prevent unused variable warnings. */
     (void) statusFlags;
