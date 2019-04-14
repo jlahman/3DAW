@@ -9,6 +9,8 @@
 
 
 #include <vector>
+#include <deque>
+
 #include<portaudio.h>
 
 
@@ -21,11 +23,19 @@ class AudioPlayer
 public:
     AudioPlayer();
 
+	//stream operations
     bool open(PaDeviceIndex indexx);
-    bool  close();
+    bool close();
     bool start();
     bool stop();
     bool restart();
+
+	//buffer operations
+	int buffer_enque(double * data, int length);
+	int buffer_enque(std::vector<double> * data);
+	int buffer_clear();
+	//std::vector<double> buffer_deque(int length);
+
 
 private:
     int paCallbackMethod(const void *inputBuffer, void *outputBuffer,
@@ -42,15 +52,19 @@ private:
     void paStreamFinishedMethod();
     static void paStreamFinished(void* userData);
 
+	int updateBuffer(int removeLength);
+
     PaStream *stream = NULL;
-    AnimationPlayer * anime;
     //HRIR_Data *hrir;
     int timingCounter;
     char message[20];
-    double **overflow = NULL;
-	double **buffer = NULL;
+    //double **overflow = NULL;
+	std::deque<double> buffer;
+	std::deque<double> buffer2; //TODO: think of a better name for its role
 
-    std::vector<Track*> trackList;
+	bool bufferLocked = false;
+	bool bufferNeedsToClear = false;
+	std::deque<double> dataToEnque;
 
 };
 #endif

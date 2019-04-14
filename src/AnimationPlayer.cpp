@@ -5,6 +5,8 @@
 
 AnimationPlayer::AnimationPlayer(std::string filepath){
   hrir = new HRIR_Data(filepath);
+  hrirLL = new double[200];
+  hrirLR = new double[200];
 }
 
 void AnimationPlayer::addSource(std::string sourceName, Track * track){
@@ -145,8 +147,10 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
   return ssp;
 }
 
-double * AnimationPlayer::interpolateHRIR_linear(double index_a, int index_e, bool left){
-  double * hrirLerped = new double[200];
+double * AnimationPlayer::interpolateHRIR_linear(double index_a, int index_e, bool left, double * hrirLerped){
+	 //printf("afterinitl;kasjdfl\n" );
+	// uint16_t size = 200;
+  //static double hrirLerped[200];//= new double[size];	 //printf("afterinitl;kasjdfl\n" );
   int lower = (int)index_a;
   int upper = (int)index_a+1;
   if(upper > 26)
@@ -155,7 +159,9 @@ double * AnimationPlayer::interpolateHRIR_linear(double index_a, int index_e, bo
     if(left)
       hrirLerped[i] = lerp(hrir->hrir_l[lower][(int)index_e][i], hrir->hrir_l[upper][(int)index_e][i], index_a, lower, upper);
     else
-      hrirLerped[i] = lerp(hrir->hrir_r[lower][(int)index_e][i], hrir->hrir_r[upper][(int)index_e][i], index_a,lower, upper);
+      hrirLerped[i] = lerp(hrir->hrir_r[lower][(int)index_e][i], hrir->hrir_r[upper][(int)index_e][i], index_a, lower, upper);
+
+	 //printf("%d\n", i );
   }
   return hrirLerped;
 }
@@ -164,21 +170,20 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
   const int hrirLength = 200;
   const int convDataSize = length + hrirLength - 1;
   const int sourceChunkSize = length;
+
   //frameStart = frameStart - 197;
   	double * audioData;
 
+	printf("before new\n");
+
 	//shouldn't be doing memory allocation or deallocation in paCallBackMethod
-	//printf("BeforeDelete\n" );
-//	if(mDataChunk != NULL) delete[] mDataChunk;
-	//printf("AfterDelete\n" );
- 	mDataChunk = new double[sourceChunkSize];
-	//printf("afterNew\n");
-	//if(convDataL != NULL)
-	//delete[] convDataL;
-	//if(convDataR != NULL)
-	//delete[] convDataR;
+	mDataChunk = new double[sourceChunkSize];
+	printf("after new\n");
+
 	convDataL = new double[convDataSize];
 	convDataR = new double[convDataSize];
+	//hrirLL = new double[200];
+	//hrirLR = new double[200];
 
   double frameTime = frameStart/44100.0;
 
@@ -194,8 +199,8 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
     overflow[0][i] = 0;
     overflow[1][i] = 0;
   }
-
-  if(ssl.empty()){
+printf("after init\n");
+  if(ssl.empty()){ printf("ssl empty\n");
     return;
   }
 
@@ -228,22 +233,33 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
       }
       frameTime += 1.0/44100.0;
     }
+	printf("after loading datachunk\n");
 
     Polar3D *p = (*source)->getProperties()->position;
 
     double aziIndex = hrir->getIndices(p->theta, p->phi)[0];
 
     int eleIndex = (int)hrir->getIndices(p->theta, p->phi)[1];
-    double * hrirLL, *hrirLR;
-    hrirLL = interpolateHRIR_linear(aziIndex, eleIndex, true);
-    hrirLR = interpolateHRIR_linear(aziIndex, eleIndex, false);
+
+    // interpolateHRIR_linear(aziIndex, eleIndex, true, hrirLL);
+	//convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);
+	//delete[] hrirLL;
+	printf("after interp of hrir\n");
+
+
+    //interpolateHRIR_linear(aziIndex, eleIndex, false, hrirLR);
+	//convolve(mDataChunk, sourceChunkSize, hrirLR, 200, convDataR);
+
     //printf("%d\n", (int)p->theta);
-    convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);
-    convolve(mDataChunk, sourceChunkSize, hrirLR, 200, convDataR);
+	//delete[] hrirLR;
+
+	printf("after convolution\n");
 
     for(int i =0; i< length; i++){
-      buffer[0][i] += convDataL[i];
-      buffer[1][i] += convDataR[i];
+		printf("%d\t%E\n", i, convDataR[i]);
+
+     // buffer[0][i] += convDataL[i];
+      //buffer[1][i] += convDataR[i];
       if(abs(buffer[0][i]) > 1.0){
         buffer[0][i] = buffer[0][i]/abs(buffer[0][i]);
       }
@@ -256,10 +272,12 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
       printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 
     }
+	printf("after assigning convdata to buffer\n");
+/*
     for(int i =length; i< length + 199; i++){
       overflow[0][i-length] += convDataL[i];
       overflow[1][i-length] += convDataR[i];
-    /*  if(abs(overflow[0][i-length]) > 1.0){
+      if(abs(overflow[0][i-length]) > 1.0){
         overflow[0][i-length] = overflow[0][i-length]/abs(overflow[1][i-length]);
       }
       if(abs(overflow[1][i-length]) > 1.0){
@@ -267,35 +285,18 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
       }*/
       //printf("%E\t%d\t%d\t%d\n", buffer[0][i], frameStart, i, (*source)->getLength());
 
-    }
-
-  }
-  if(convDataL != NULL and convDataR != NULL){
-	//  delete[] convDataL;
-	//  convDataL = NULL;
-	//  delete[] convDataR;
-	// convDataR = NULL;
-	 //delete[] hrirL; hrirL = NULL;
-    // delete[] hrirR; hrirR = NULL;
+    //}
 
   }
 
-  //delete[] convDataR;
-  //delete[] mDataChunk;
-  //mDataChunk = NULL;
-
-/*
-  for(int i =0; i< 200; i++){
-    buffer[0][i] = lerp(0, buffer[0][199], i, 0, 200-1);
-    buffer[1][i] = lerp(0, buffer[1][199], i, 0, 200-1);
-
-
-
-  }
-  for(int i =length -200; i< length; i++){
-    buffer[0][i] = lerp(buffer[0][length -200], 0, i, length -200, length-1);
-    buffer[1][i] = lerp(buffer[1][length -200], 0, i, length -200, length-1);
+  printf("BeforeDelete\n" );
+  if(mDataChunk != NULL) delete[] mDataChunk;
+  printf("AfterDelet e\n" );
+ // printf("afterNew\n");
+  if(convDataL != NULL)
+  delete[] convDataL;
+  if(convDataR != NULL)
+  delete[] convDataR;  printf("AfterDelet e\n" );
 
 
-  }*/
 }

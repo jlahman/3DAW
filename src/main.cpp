@@ -2,7 +2,6 @@
 #include <iostream>
 #include <vector>
 #include <cstring>
-#include<portaudio.h>
 
 
 #include"Track.h"
@@ -17,53 +16,65 @@ int main(int argc,  char * argv[])
 {
 
     PaError err;
-    AudioPlayer* ap;
+    //AudioPlayer* ap;
     AnimationPlayer * anime;
+	//ap = new AudioPlayer();
+	anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
 
-   ap = new AudioPlayer();
+    trackList.push_back(new Track("../data/test.wav"));
+
+
+	anime->addSource("Narrator2", trackList[0]);
+
+
+	const int framesPerAnimationStep = 4096;
+	int frameCount = 0;
+	bool animePlay = true;
+	const int frameStop = 441 * 1;
+	const int audioOutSize = 2*frameStop;
+
+	double ** audioOut = new double*[2];
+	audioOut[0] = new double[frameStop];
+	audioOut[1] = new double[frameStop];
+	double ** overflow = new double*[2];
+	overflow[0] = new double[200-1];
+	overflow[1]= new double[200-1];
+	double *audioOutInterlaced = new double[audioOutSize];
+	
+	anime->getBuffer(audioOut, overflow, frameCount, (const int)frameStop);
+	for(int i = 0; i < frameStop; i++){
+		//printf("%E\n", audioOut[0][i]);
+		audioOutInterlaced[2*i] = audioOut[0][i];
+		audioOutInterlaced[2*i + 1] = audioOut[1][i];
+		//frameCount += framesPerAnimationStep;
+		//printf("%d\n", i);
+	}
+
+	printf("%d\n", frameStop*2-1);
+
+
+	delete[] audioOut[0];
+	delete[] audioOut[1];
+	delete[] audioOut;
+	printf("PortAudio Test\n");
+
+	delete[] overflow[0];	printf("PortAudio Test\n");
+
+	delete[] overflow[1];	printf("PortAudio Test\n");
+
+	delete[] overflow;	printf("PortAudio Test\n");
+
+
+	printf("PortAudio Test\n");
+
+	//ap->buffer_enque(audioOutInterlaced, audioOutSize);
+
+
+	//delete[] audioOutInterlaced;
+
 
     printf("PortAudio Test\n");
 
-    err = Pa_Initialize();
-    if( err != paNoError ) goto error;
 
-    if (ap->open(Pa_GetDefaultOutputDevice()))
-    {
-        char input;
-        bool done = false;
-        bool pause = false;
-        while(!done){
-          //handle input
-          std::cin >> input;
-          if(input == 'p'){
-            pause = !pause;
-          } else if(input == 'r') {
-            ap->restart();
-          } else if(input == 'q') {
-            done = true;
-          }
-
-          if (pause)
-          {
-            ap->start();
-            printf("Play\n" );
-          } else {
-            printf("Pause\n" );
-            ap->stop();
-          }
-        }
-        ap->close();
-    }
-
-    Pa_Terminate();
-    printf("Test finished.\n");
-
-    return err;
-
-error:
-    Pa_Terminate();
-    fprintf( stderr, "An error occured while using the portaudio stream\n" );
-    fprintf( stderr, "Error number: %d\n", err );
-    fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
-    return err;
+	return 0;
 }

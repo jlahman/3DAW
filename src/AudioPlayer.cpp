@@ -5,52 +5,34 @@
         If not realtime could have a function to change pointer to data? would realtime make be any different?
  */
 #include<iostream>
+#include<algorithm>
 #include"AudioPlayer.h"
 
 AudioPlayer::AudioPlayer()
 {
     /* initialise variables */
     timingCounter = 0;
-    trackList.push_back(new Track("../data/narrator2.ogg"));
-    trackList.push_back(new Track("../data/test.wav"));
-    trackList.push_back(new Track("../data/narrator.ogg"));
-    trackList.push_back(new Track("../data/souldfire.wav"));
+	buffer.push_back(0.0);
+	buffer.push_back(0.0);
 
-
-    anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
-    anime->addSource("Narrator2", trackList[2]);
-    anime->addKeyFrame("Narrator2",0.0,  new SoundSourceProperties(new Polar3D(1.0, -100, 0.0), false, true));
-  	anime->addSource("bonfire", trackList[3]);
-    SoundSourceProperties *p = new SoundSourceProperties(new Polar3D(1.0, 25, 0.0), true, true);
-    p->scale = .45;
-    anime->addKeyFrame("bonfire", 0.0, p);
-
-    anime->addSource("Waterfall", trackList[1]);
-    p = new SoundSourceProperties(new Polar3D(1.0, -60, 0.0), true, true);
-    p->scale = 0.2;
-    anime->addKeyFrame("Waterfall", 0.0,  p);
-
-
-    anime->setStartTime("Narrator", 5.0);
-    //anime->setStartTime("Narrator2", 0.0);
-
-    anime->test_KeyFrames("Narrator2");
 }
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
 {
-    PaStreamParameters outputParameters;
+	printf("helllo\n");
 
+    PaStreamParameters outputParameters;
+printf("helllo\n");
     outputParameters.device = indexx;
     if (outputParameters.device == paNoDevice) {
         return false;
     }
-
+printf("helllo\n");
     outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = paFloat32;  //paInt16; /* 32 bit float output */
     outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
-
+printf("helllo\n");
     PaError err = Pa_OpenStream(
         &stream,
         NULL, /* no input */
@@ -61,13 +43,13 @@ bool AudioPlayer::open(PaDeviceIndex indexx)
         &AudioPlayer::paCallback,
         this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
         );
-
+printf("helllo\n");
     if (err != paNoError)
     {
         /* Failed to open stream to device !!! */
         return false;
     }
-
+printf("helllo\n");
     err = Pa_SetStreamFinishedCallback( stream, &AudioPlayer::paStreamFinished );
 
     if (err != paNoError)
@@ -77,7 +59,7 @@ bool AudioPlayer::open(PaDeviceIndex indexx)
 
         return false;
     }
-
+printf("helllo\n");
     return true;
 }
 
@@ -127,97 +109,32 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     const PaStreamCallbackTimeInfo* timeInfo,
     PaStreamCallbackFlags statusFlags)
 {
+	printf("PaCallBack\n");
+	bufferLocked = true;
     unsigned long i;
     float* out = (float *) outputBuffer;
-
-    //double bufferLeft[framesPerBuffer];
-    //double bufferRight[framesPerBuffer];
-
-    buffer = new double*[2];
-    const int fs = (const int)framesPerBuffer;
-    //printf("%d\n", fs);
-    buffer[0] = new double[fs];
-    buffer[1] = new double[fs];
-    double **newOverflow = new double*[2];
-    newOverflow[0] = new double[199];
-    newOverflow[1] = new double[199];
-
-    anime->getBuffer(buffer, newOverflow, timingCounter, (const int)framesPerBuffer);
-
-    double outL;// = buffer[0][i] + overflow[0][i];
-    double outR;// = buffer[1][i] + overflow[1][i];
-    for( i=0; i<framesPerBuffer; i++ )
-    {
-        if(i < 200 and overflow != NULL){
-           outL = buffer[0][i] + overflow[0][i];
-           outR = buffer[1][i] + overflow[1][i];
-          if(outL > 1.0){
-            outL = 1.0;
-          }
-          if(outR > 1.0){
-            outR = 1.0;
-          }
-
-          *out++ = outL;//buffer[0][i] + overflow[0][i];
-          *out++ = outR;//buffer[1][i] + overflow[1][i];
-        } else{
-          *out++ = buffer[0][i];
-          *out++ = buffer[1][i];
-        }
-    }
-
-	//this should make audio truer for frames smaller than 200
-	//it might not though, need to go through math
-	for(i = framesPerBuffer; i < 199 && overflow != NULL; i++){
-		newOverflow[0][i] += overflow[0][i];
-		newOverflow[1][i] += overflow[1][i];
-
+	for(int i = 0; i < framesPerBuffer; i++){
+		if(!buffer.empty()){
+			*out++ = buffer.front();
+			buffer.pop_front();
+			*out++ = buffer.front();
+			buffer.pop_front();
+		} else {
+			*out++ = 0.0;
+			*out++ = 0.0;
+			printf("No more data in buffer at i = \t%d", i);
+		}
 	}
 
-	//free(overflow[1]);
-	//free(overflow[0]);
-	/*if(buffer != NULL){
-		delete[] buffer[1];
-		buffer[1] = NULL;
-		delete[] buffer[0];
-		buffer[0] = NULL;
-		delete buffer;
-		buffer = NULL;
-	}
-*/
+	bufferLocked = false;
 
-/*
-	if(overflow != NULL){
-		delete[] overflow[1];
-		overflow[1] = NULL;
-		delete[] overflow[0];
-		overflow[0] = NULL;
-		delete overflow;
-		overflow = NULL;
-	}
-	overflow = newOverflow;
-	overflow[0] = newOverflow[0];
-	overflow[1] = newOverflow[1];*/
-
-	overflow = newOverflow;
-
-
-	/*delete[] buffer[0];
-	delete[] buffer[1];
-	delete[] buffer;*/
-	//free(buffer[1]);
-	//free(buffer[0]);
-	//delete[] buffer;
-
-
-
-
-
+	/*
 
     timingCounter = timingCounter + framesPerBuffer;
     //printf("%d\n", framesPerBuffer);
    // index = index + framesPerBuffer;
-    (void) timeInfo; /* Prevent unused variable warnings. */
+   /* Prevent unused variable warnings. */
+    (void) timeInfo;
     (void) statusFlags;
     (void) inputBuffer;
 
@@ -246,7 +163,6 @@ int AudioPlayer::paCallback( const void *inputBuffer, void *outputBuffer,
 
 }
 
-
 void AudioPlayer::paStreamFinishedMethod()
 {
   //  printf( "Stream Completed\n" );
@@ -260,4 +176,51 @@ void AudioPlayer::paStreamFinishedMethod()
  void AudioPlayer::paStreamFinished(void* userData)
 {
     return ((AudioPlayer*)userData)->paStreamFinishedMethod();
+}
+
+int AudioPlayer::buffer_enque(std::vector<double> * data){
+	std::copy(data->begin(), data->end(), buffer2.end());
+	updateBuffer(0);
+
+	return 0;
+}
+
+int AudioPlayer::buffer_enque(double * data, int length){
+	//TODO: probably not effecient, look for something similar to the vector copy
+	printf("rwarxrdlk;ajsdf\n" );
+	for(int i = 0; i < length; i++){
+		printf("%d\n",i );
+
+		buffer2.push_back(data[i]);
+	}
+	updateBuffer(0);
+
+	return 0;
+}
+
+int AudioPlayer::buffer_clear(){
+	bufferNeedsToClear = true;
+	return 0;
+}
+
+
+int AudioPlayer::updateBuffer(int removeLength){
+	return 0;
+	if(!bufferLocked && bufferNeedsToClear){
+		buffer.clear();
+		return 0;
+	} else {
+		if(bufferLocked){
+			printf("Buffer is Still Locked!\n");
+			return 0;
+		} else {			printf("DEBUG: Before copy!\n");
+			if(true){printf("DONEON: Before copy!\n");
+				buffer.push_back(buffer2.front());printf("DONEON: AFTER copy!\n");
+			} else
+				std::copy(buffer2.begin(), buffer2.end(), buffer.end());
+			printf("RAWR: Before copy!\n");
+			return 0;
+		}
+	}
+	return -1;
 }
