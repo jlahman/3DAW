@@ -20,7 +20,7 @@ AudioPlayer::AudioPlayer()
     anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
     //anime->addSource("Narrator2", trackList[0]);
     anime->addKeyFrame("Narrator2",0.0,  new SoundSourceProperties(new Polar3D(1.0, -100, 0.0), false, true));
-  anime->addSource("bonfire", trackList[3]);
+  	anime->addSource("bonfire", trackList[3]);
     SoundSourceProperties *p = new SoundSourceProperties(new Polar3D(1.0, 25, 0.0), true, true);
     p->scale = .45;
     anime->addKeyFrame("bonfire", 0.0, p);
@@ -56,7 +56,7 @@ bool AudioPlayer::open(PaDeviceIndex indexx)
         NULL, /* no input */
         &outputParameters,
         44100,
-        64,//paFramesPerBufferUnspecified, //	FRAMES_PER_BUFFER,//22050/8,
+        paFramesPerBufferUnspecified, //	FRAMES_PER_BUFFER,//22050/8,
         paNoFlag,
         &AudioPlayer::paCallback,
         this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
@@ -132,6 +132,7 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
 
     //double bufferLeft[framesPerBuffer];
     //double bufferRight[framesPerBuffer];
+	printf("%d\n", framesPerBuffer);
 
     double **buffer = new double*[2];
     const int fs = (const int)framesPerBuffer;
@@ -141,8 +142,10 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
     double **newOverflow = new double*[2];
     newOverflow[0] = new double[199];
     newOverflow[1] = new double[199];
+	printf("dhfgh");
 
     anime->getBuffer(buffer, newOverflow, timingCounter, framesPerBuffer);
+	printf("dhhghgdfhfh\n");
 
     double outL;// = buffer[0][i] + overflow[0][i];
     double outR;// = buffer[1][i] + overflow[1][i];
@@ -165,6 +168,7 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
           *out++ = buffer[1][i];
         }
     }
+	printf("Lorem Ipsum\n");
 
 	//this should make audio truer for frames smaller than 200
 	//it might not though, need to go through math
@@ -173,7 +177,18 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
 		newOverflow[1][i] += overflow[1][i];
 
 	}
+	if(overflow != NULL){
+	delete[] overflow[0];
+	delete[] overflow[1];
+	delete[] overflow;}
+
     overflow = newOverflow;
+
+	delete[] buffer[0];
+	delete[] buffer[1];
+	delete[] buffer;
+
+
 
     timingCounter = timingCounter + framesPerBuffer;
     printf("%d\n", framesPerBuffer);

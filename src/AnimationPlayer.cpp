@@ -172,8 +172,6 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
   double * convDataL = new double[convDataSize];
   double * convDataR = new double[convDataSize];
 
-  double * hrirL = new double[hrirLength];
-  double * hrirR = new double[hrirLength];
 
   double frameTime = frameStart/44100.0;
 
@@ -221,6 +219,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
         }
       }
       frameTime += 1.0/44100.0;
+	  delete (*source)->getProperties();
     }
 
     Polar3D *p = (*source)->getProperties()->position;
@@ -234,6 +233,9 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
     //printf("%d\n", (int)p->theta);
     convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);
     convolve(mDataChunk, sourceChunkSize, hrirLR, 200, convDataR);
+
+	delete[] hrirLL;
+	delete[] hrirLR;
 
     for(int i =0; i< length; i++){
       buffer[0][i] += convDataL[i];
@@ -264,6 +266,10 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
     }
 
   }
+
+  delete[] mDataChunk;
+  delete[] convDataL;
+  delete[] convDataR;
 /*
   for(int i =0; i< 200; i++){
     buffer[0][i] = lerp(0, buffer[0][199], i, 0, 200-1);
