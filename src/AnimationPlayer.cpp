@@ -229,7 +229,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
         }
       }
       frameTime += 1.0/44100.0;
-	  delete (*source)->getProperties();
+	  //delete (*source)->getProperties();
     }
 	//printf("after loading datachunk\n");
 
