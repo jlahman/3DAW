@@ -1,4 +1,4 @@
-# Command List: 
+# Command List:
 ## File IO:
 * `import -file $filename` : add a new track with audio data from the filename
 * `export $filename` : export the final audio data of the selected composition to a wav file
@@ -26,4 +26,5 @@
 * `pause -c|-s` : stops playback of currently select composition or source, depending on option
 * `goto -c|-s $Time_S` : sets time used for audio playback
 
-
+## List Components:
+* `list -c|-s|-k $time` : lists all components at time
