@@ -17,20 +17,20 @@ AudioPlayer::AudioPlayer()
 
 bool AudioPlayer::open(PaDeviceIndex indexx)
 {
-	printf("helllo\n");
+	//printf("helllo\n");
 
     PaStreamParameters outputParameters;
-printf("helllo\n");
+//printf("helllo\n");
     outputParameters.device = indexx;
     if (outputParameters.device == paNoDevice) {
         return false;
     }
-printf("helllo\n");
+//printf("helllo\n");
     outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = paFloat32;  //paInt16; /* 32 bit float output */
     outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
-printf("helllo\n");
+//printf("helllo\n");
     PaError err = Pa_OpenStream(
         &stream,
         NULL, /* no input */
@@ -41,13 +41,13 @@ printf("helllo\n");
         &AudioPlayer::paCallback,
         this            /* Using 'this' for userData so we can cast to AudioProcessor* in paCallback method */
         );
-printf("helllo\n");
+//printf("helllo\n");
     if (err != paNoError)
     {
         /* Failed to open stream to device !!! */
         return false;
     }
-printf("helllo\n");
+//printf("helllo\n");
     err = Pa_SetStreamFinishedCallback( stream, &AudioPlayer::paStreamFinished );
 
     if (err != paNoError)
@@ -57,7 +57,7 @@ printf("helllo\n");
 
         return false;
     }
-printf("helllo\n");
+//printf("helllo\n");
     return true;
 }
 
@@ -109,12 +109,12 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
 {
 	//printf("PaCallBack\n");
     float* out = (float *) outputBuffer;
-	printf("BEFORE %s\n", bufferLocked ? "true" : "false");
+	//printf("BEFORE %s\n", bufferLocked ? "true" : "false");
 
 //	while(bufferLocked){};
 //bufferLocked = true;
 	//std::vector<double> tempBuffer;
-	printf("%s\n", bufferLocked ? "true" : "false");
+	//printf("%s\n", bufferLocked ? "true" : "false");
 	//get data for this frame
 	int length = bufferIntern->size();
 	if(length >= framesPerBuffer*2){
@@ -155,7 +155,7 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
 	}
 	//bufferLocked = false;
 	//write_index =(write_index + framesPerBuffer)%bufferMax;
-	printf("AFTER copy%s\n", bufferLocked ? "true" : "false");
+//	printf("AFTER copy%s\n", bufferLocked ? "true" : "false");
 
 	for(int i = 0; i < framesPerBuffer; i++){
 		if(!buffer.empty() && buffer.size() > 1){
@@ -167,13 +167,13 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
 		} else {
 			*out++ = 0.0;
 			*out++ = 0.0;
-			printf("No more data in buffer at i = \t%d", i);
+			//printf("No more data in buffer at i = \t%d", i);
 		}
 	}
-	printf("%s\n", bufferLocked ? "true" : "false");
+	//printf("%s\n", bufferLocked ? "true" : "false");
 
 	timingCounter = timingCounter + framesPerBuffer;
-	printf("%lf\n", timingCounter/44100.0 );
+	//printf("%lf\n", timingCounter/44100.0 );
 	//while(bufferLocked){};
 
 	//bufferLocked = true;
@@ -253,10 +253,10 @@ int AudioPlayer::buffer_enque(std::vector<double> * data){
 int AudioPlayer::buffer_enque(double * data, int length){
 	//TODO: probably not effecient, look for something similar to the vector copy
 //	if(bufferSize < bufferMax){
-printf("BUFFER_ENQUE%s\n", bufferLocked ? "true" : "false");
+//printf("BUFFER_ENQUE%s\n", bufferLocked ? "true" : "false");
 
 	while(bufferLocked){}
-	printf("%s\n", bufferLocked ? "true" : "false");
+	//printf("%s\n", bufferLocked ? "true" : "false");
 
 	//bufferLocked = true;
 		int i = 0;
