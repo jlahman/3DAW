@@ -11,7 +11,6 @@
 
 #include"AnimationPlayer.h"
 
-#define NUM_SECONDS   (16)
 std::vector<Track*> trackList;
 AudioPlayer ap = AudioPlayer();
 AnimationPlayer * anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
@@ -26,11 +25,11 @@ int keyFrameSelected = 0;
 const int frameStop = 44100 * 50 ;
 
 double ** audioOut = NULL;
-
 double ** overflow = NULL;
 
 enum SSPEnums 	{POSITION,	 	RADIUS, 	THETA ,		PHI,	SCALE,		LOOPING , 	VISIBLE, END  };
 std::string SSPNames[] = 	{"position", 	"radius",	"theta",	"phi",	"scale",	"looping",	"visible", "invalid" };
+
 void set_property_keyframe(std::string propertyName, std::string propertyValue);
 void set_property_source(std::string propertyName, std::string propertyValue);
 
@@ -38,18 +37,15 @@ void foo(){
 	while(!done){
 		while(ap.getBufferMax() > ap.buffer_size() && frameCount < frameStop && animePlay){
 			int writeLength = (ap.getBufferMax() - ap.buffer_size())/2;
-			//printf("DEBUG: 1 \t%d \n", frameCount);
 
 			if(writeLength >= framesPerAnimationStep){
 				writeLength = framesPerAnimationStep;
 			}
-			//printf("DEBUG: 2 \t%d \n", frameCount);
 
 			audioOut  = new double*[2];
 			audioOut[0] = new double[writeLength];
 			audioOut[1] = new double[writeLength];
 
-			//printf("DEBUG: 3 \t%d \n", frameCount);
 
 			double ** newOverflow = new double*[2];
 			newOverflow[0] = new double[199];
@@ -58,13 +54,10 @@ void foo(){
 			const int audioOutSize = 2*writeLength;
 			double *audioOutInterlaced = new double[audioOutSize];
 
-			//printf("DEBUG: 4 \t%d \n", frameCount);
 
 			anime->getBuffer(audioOut, newOverflow, frameCount, (const int)writeLength);
-			//printf("DEBUG: 5 \t%d \n", frameCount);
 
 			for(int i = 0; i < writeLength; i++){
-				//printf("%E\n", audioOut[0][i]);
 				if(overflow != NULL && i < 199){
 					audioOutInterlaced[2*i] = audioOut[0][i] + overflow[0][i];
 					audioOutInterlaced[2*i+ 1] = audioOut[1][i] + overflow[1][i];
@@ -72,9 +65,7 @@ void foo(){
 					audioOutInterlaced[2*i] = audioOut[0][i];
 					audioOutInterlaced[2*i+ 1] = audioOut[1][i];
 				}
-				//fprintf(stderr, "%f\n", audioOutInterlaced[i*2] );
 			}
-			//printf("DEBUG: 6 \t%d \n", frameCount);
 			for(int i = writeLength; i < 199 && overflow != NULL; i++){
 				newOverflow[0][i-writeLength] += overflow[0][i];
 				newOverflow[1][i-writeLength] += overflow[1][i];
@@ -92,13 +83,11 @@ void foo(){
 				delete[] audioOut;
 			}
 
-
-			//printf("DEBUG: 7 \t%d \n", frameCount);
-
 			overflow = newOverflow;
 			frameCount += writeLength;
+
 			ap.buffer_enque(audioOutInterlaced, audioOutSize);
-			//printf("%d \n", frameCount/framesPerAnimationStep);
+
 			if(audioOutInterlaced != NULL){
 				delete[] audioOutInterlaced;
 			}
@@ -123,21 +112,13 @@ int main(int argc,  char * argv[])
 
 	if (ap.open(Pa_GetDefaultOutputDevice()))
 	{
-		//std::string input;
 		done = false;
-		//bool pause = true;
 		std::thread(foo).detach();
-		//nice.detach();
-		//std::cin >> input;
-		//Pa_Sleep(1000);
-
 		ap.start();
-		//done = true;
 		while(!done){
 			handle_input();
 		}
 		ap.close();
-		//nice.~thread();
 	}
 
 	Pa_Terminate();
@@ -146,10 +127,10 @@ int main(int argc,  char * argv[])
 	for(int i = 0; i < trackList.size(); i++){
 		delete trackList[i];
 	}
+	
+	//finally it's done
+	//what needed to long ago
 	delete anime;
-
-	//delete[] audioOutInterlaced;
-
 
 	return err;
 
@@ -159,8 +140,6 @@ int main(int argc,  char * argv[])
 		fprintf( stderr, "Error number: %d\n", err );
 		fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
 		return err;
-
-	//return 0;
 }
 //from fluentcpp: https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
 std::vector<std::string> split(const std::string& s, char delimiter)
@@ -205,7 +184,9 @@ void handle_input(){
 	} else if(line[0] == "q" || line[0] == "quit") {
 		done = true;
 	}
-	//commands
+	//seeing this, need rum
+	//more elegant ways exist
+	//map strings to enum
 	else if(line[0] ==  "import"){
 		if(line[1] == "-file" || line[1] == "-f"){
 			Track * track = new Track(line[2]);
