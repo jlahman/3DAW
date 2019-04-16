@@ -11,6 +11,7 @@ In order to build this project, the following system libraries need to be instal
 	* [avformat]()
 	* [avutil]()
 	* [swresample]()
+* lib std::c++11
 
 If you are using a linux distro, your software repository probably has these. On ubuntu 18.04 they can be installed by:
 `sudo apt install libmatio-dev libportaudio2 portaudio19-dev libavcodec-dev libavformat-dev libavutil-dev libavresample-dev`

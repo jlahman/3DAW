@@ -25,18 +25,20 @@ class SoundSource {
    void setProperties(SoundSourceProperties * properties);
    SoundSourceProperties * getProperties();
 
-   void setStartTime(double time);
-   double getStartTime();
+   //void setStartTime(double time);
+   //double getStartTime();
 
    double * getAudioData();
    int getLength();
 
    std::string getName();
+   void setName(std::string name);
+
   private:
    //Fields
    Track *track;
    std::string name;
-   double startTime_s;
+   //double startTime_s;
    SoundSourceProperties *properties;
 
    //Functions

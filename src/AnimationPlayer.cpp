@@ -9,6 +9,42 @@ AnimationPlayer::AnimationPlayer(std::string filepath){
 	hrirLR = new double[200];
 }
 
+bool AnimationPlayer::hasSource(std::string sourceName){
+	for(std::vector<MasterSource*>::iterator source = sourceList.begin(); source != sourceList.end(); source++){
+		if((*source)->source->getName().compare(sourceName) == 0){
+			return true;
+		}
+	}
+	return false;
+}
+
+MasterSource * AnimationPlayer::getSource(std::string sourceName){
+	for(std::vector<MasterSource*>::iterator source = sourceList.begin(); source != sourceList.end(); source++){
+		if((*source)->source->getName().compare(sourceName) == 0){
+			return (*source);
+		}
+	}
+	return NULL;
+}
+
+void AnimationPlayer::removeSource(std::string sourceName){
+	for(std::vector<MasterSource*>::iterator source = sourceList.begin(); source != sourceList.end(); source++){
+		if((*source)->source->getName().compare(sourceName) == 0){
+			delete (*source);
+			sourceList.erase(source);
+			return;
+		}
+	}
+	return;
+}
+
+MasterSource * AnimationPlayer::getSourceAt(int index){
+	if(index >= sourceList.size() || index < 0)
+		return NULL;
+
+	return sourceList.at(index);
+}
+
 void AnimationPlayer::addSource(std::string sourceName, Track * track){
 	  sourceList.push_back(new MasterSource(new SoundSource(track, sourceName), 0.0, 0.0));
 }
@@ -76,6 +112,18 @@ std::vector<SoundSource*> AnimationPlayer::getSources(double time_s){
 	}
 	return returnList;
 }
+
+std::vector<SoundSource*> AnimationPlayer::getSources(){
+	std::vector<SoundSource*> returnList;
+	for(std::vector<MasterSource*>::iterator source = sourceList.begin(); source != sourceList.end(); source++){
+		SoundSource * temp = (*source)->source;
+		if(temp){
+			returnList.push_back(temp);
+		}
+	}
+	return returnList;
+}
+
 
 SoundSource* AnimationPlayer::getSource(MasterSource  *s, double time_s){
 	SoundSource* instSource = NULL;

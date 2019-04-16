@@ -34,16 +34,20 @@ SoundSourceProperties * SoundSource::getProperties(){
   return properties;
 }
 
-void SoundSource::setStartTime(double time_s){
-  this->startTime_s = time_s;
-}
+//void SoundSource::setStartTime(double time_s){
+  //this->startTime_s = time_s;
+//}
 
-double SoundSource::getStartTime(){
-  return startTime_s;
-}
+//double SoundSource::getStartTime(){
+ // return startTime_s;
+//}
 
 std::string SoundSource::getName(){
   return name;
+}
+
+void SoundSource::setName(std::string name){
+  this->name = name;
 }
 
 void SoundSource::initProperties(){

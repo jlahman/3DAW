@@ -23,12 +23,19 @@ class AnimationPlayer {
   public:
     AnimationPlayer(std::string filepath);
     void addSource(std::string sourceName, Track * track);
+	void removeSource(std::string sourceNam);
+	bool hasSource(std::string sourceName);
+	SoundSource* getSource(MasterSource * s, double time_s);
+	MasterSource* getSource(std::string s);
+	MasterSource* getSourceAt(int index);
+
 
     //this handles the convolution and addition, but probably shouldn't be a part of this class
     //animation player should just handle doing the interpolation of source properties between keyframes
     //    given a timestamp and frame length, maybe?
     void getBuffer(double ** buffer, double ** overflow, int frameStart, int length);
     std::vector<SoundSource*> getSources(double time_s);
+	std::vector<SoundSource*> getSources();
     int addKeyFrame(std::string sourceName, double time_s, SoundSourceProperties * properties);
     int test_KeyFrames(std::string sourceName);
 
@@ -41,7 +48,7 @@ class AnimationPlayer {
     //    a audioprocessor would querry properties at a timestamp and process the audio tracks accordingly,
     //        basically whats in getbuffer
     std::vector<MasterSource*> sourceList;
-    SoundSource* getSource(MasterSource * s, double time_s);
+    //SoundSource* getSource(MasterSource * s, double time_s);
     SoundSourceProperties * interpolateProperties(MasterSource * s, double time_s, int index_lo, int index_hi);
     double * interpolateHRIR_linear( double index_a, int index_e, bool left, double * arr);
 

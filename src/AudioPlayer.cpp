@@ -160,9 +160,21 @@ int AudioPlayer::paCallbackMethod(const void *inputBuffer, void *outputBuffer,
 	for(int i = 0; i < framesPerBuffer; i++){
 		if(!buffer.empty() && buffer.size() > 1){
 			//should only read
-			*out++ = buffer.front();
+			double val = buffer.front();
+			if(val > 1.0){
+				val = 1.0;
+			} else if( val < -1.0){
+				val = -1.0;
+			}
+			*out++ = val;
 			buffer.pop_front();
-			*out++ = buffer.front();
+			val = buffer.front();
+			if(val > 1.0){
+				val = 1.0;
+			} else if( val < -1.0){
+				val = -1.0;
+			}
+			*out++ = val;
 			buffer.pop_front();
 		} else {
 			*out++ = 0.0;
