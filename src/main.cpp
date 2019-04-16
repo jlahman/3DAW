@@ -103,9 +103,9 @@ int main(int argc,  char * argv[])
 
     PaError err;
 
-    trackList.push_back(new Track("../data/souldfire.wav"));
+    /*trackList.push_back(new Track("../data/souldfire.wav"));
 	anime->addSource("Narrator2", trackList[0]);
-	anime->test_KeyFrames("Narrator2");
+	anime->test_KeyFrames("Narrator2");*/
 
     printf("PortAudio Test\n");
 	err = Pa_Initialize();
