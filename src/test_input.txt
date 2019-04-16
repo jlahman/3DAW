@@ -1,0 +1,41 @@
+import -f ../data/test.wav
+import -f ../data/narrator.ogg
+import -f ../data/narrator2.ogg
+import -f ../data/souldfire.wav
+import -f ../data/Bee.mp3
+
+add -s Waterfall 0
+add -s Narrator 1
+add -s Narrator2 2
+add -s Bonfire 3
+
+select -s Waterfall
+select -k 0
+set -k -p scale 0.3
+set -k -p theta -40
+
+select -s Bonfire
+select -k 0
+set -k -p scale 0.6
+set -k -p theta 20
+
+select -s Narrator
+select -k 0
+set -s -p start_time 5
+set -k -p scale 0.5
+set -k -p theta -100
+add -k 8.5
+select -k 1
+set -k -p scale 0.5
+set -k -p theta 50
+set -k -p visible false
+
+
+select -s Narrator2
+select -k 0
+set -s -p start_time 5.5
+set -k -p scale 0.5
+set -k -p visible false
+
+
+
