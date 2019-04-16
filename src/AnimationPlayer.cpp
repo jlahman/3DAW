@@ -194,7 +194,20 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 
 	Polar3D * position = new Polar3D(1.0, 0.0, 0.0);
 	position->radius = lerp(lo->position->radius, hi->position->radius, time_s, time_lo, time_hi);
-	position->theta = lerp(lo->position->theta, hi->position->theta, time_s, time_lo, time_hi);
+
+	//step one
+	double angleT = abs(lo->position->theta - hi->position->theta);
+	if(angleT > 180){
+		angleT = abs(angleT - 360);
+	}
+	//step two
+	if(hi->position->theta < lo->position->theta){
+		angleT *= -1;
+	}
+	double delta = lerp(0, angleT, time_s, time_lo, time_hi);
+	//step three
+	position->theta = fmod((lo->position->theta + 180 + delta), 360) - 180;
+
 	position->phi = lerp(lo->position->phi, hi->position->phi, time_s, time_lo, time_hi);
 
 	double scale = lerp(lo->scale, hi->scale, time_s, time_lo, time_hi);
