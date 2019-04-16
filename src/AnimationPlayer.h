@@ -50,7 +50,7 @@ class AnimationPlayer {
     std::vector<MasterSource*> sourceList;
     //SoundSource* getSource(MasterSource * s, double time_s);
     SoundSourceProperties * interpolateProperties(MasterSource * s, double time_s, int index_lo, int index_hi);
-    double * interpolateHRIR_linear( double index_a, int index_e, bool left, double * arr);
+    double * interpolateHRIR_linear( double index_a, double index_e, bool left, double * arr);
 
 
 

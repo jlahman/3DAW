@@ -217,7 +217,7 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 	return ssp;
 }
 
-double * AnimationPlayer::interpolateHRIR_linear(double index_a, int index_e, bool left, double * hrirLerped){
+double * AnimationPlayer::interpolateHRIR_linear(double index_a, double index_e, bool left, double * hrirLerped){
 	int lower = (int)index_a;
 	int upper = (int)index_a+1;
 	if(upper > 26)
@@ -289,7 +289,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 
 			double aziIndex = hrir->getIndices(p->theta, p->phi)[0];
 
-			int eleIndex = (int)hrir->getIndices(p->theta, p->phi)[1];
+			double eleIndex = hrir->getIndices(p->theta, p->phi)[1];
 
 			interpolateHRIR_linear(aziIndex, eleIndex, true, hrirLL);
 			convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);
