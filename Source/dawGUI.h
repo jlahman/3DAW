@@ -31,14 +31,14 @@ public:
     MainContentComponent()
     {
         addAndMakeVisible (azimuthSlider);
-        azimuthSlider.setRange (-180, 180);         
-        azimuthSlider.setTextValueSuffix (" Degrees");     
-        azimuthSlider.addListener (this);            
+        azimuthSlider.setRange (-180, 180);
+        azimuthSlider.setTextValueSuffix (" Degrees");
+        azimuthSlider.addListener (this);
 	//	azimuthSlider.setNumDecimalPlacesToDisplay(2);
 
         addAndMakeVisible (azimuthLabel);
         azimuthLabel.setText ("Azimuth", dontSendNotification);
-        azimuthLabel.attachToComponent (&azimuthSlider, true); 
+        azimuthLabel.attachToComponent (&azimuthSlider, true);
 
         addAndMakeVisible (elevationSlider);
 		elevationSlider.setRange(-90, 90);
@@ -52,14 +52,14 @@ public:
 
         azimuthSlider.setValue (0);
 		elevationSlider.setValue(0);
-        
+
         addAndMakeVisible (openButton);
         openButton.setButtonText ("Open...");
         openButton.onClick = [this] { openButtonClicked(); };
-        
-        //addAndMakeVisible (playButton);
-        //playButton.setButtonText ("Play");
-        //playButton.onClick = [this] { playButtonClicked(); };
+
+        addAndMakeVisible (playButton);
+        playButton.setButtonText ("Play");
+        playButton.onClick = [this] { playButtonClicked(); };
 
         addAndMakeVisible (exportButton);
         exportButton.setButtonText ("Export");
@@ -73,7 +73,7 @@ public:
     ~MainContentComponent() {
         //delete interfacer;
     }
-    
+
     Interfacer * interfacer = new Interfacer();
 
     void resized() override
@@ -91,34 +91,23 @@ public:
     {
 		if (slider == &azimuthSlider) {}
 		else if (slider == &elevationSlider) {}
-			
+
     }
-    
+
     void openButtonClicked()
     {
         FileChooser chooser ("Select a Wave file to spatialize...",{},"*.wav");
-        if (chooser.browseForFileToOpen())                                    
+        if (chooser.browseForFileToOpen())
         {
-            targetFile = chooser.getResult();   
+            targetFile = chooser.getResult();
                std::ofstream myfile("t", std::ios::out);
                if(!myfile.is_open())
                 std::cout << "aksljdlf";
         //myfile.open ("test.txt");
-            std::string cmds, fp, azi, ele;
-            fp = targetFile.getFullPathName().toStdString();
-            azi = (int)azimuthSlider.getValue();
-            ele = (int)elevationSlider.getValue();
-            myfile << "import -file ";
-            myfile << fp;
-            myfile << "\n";
-            myfile << "add -s " << fp << " " << "0\n" ;
-            myfile << "select -s " << fp << "\0";
-            myfile << "select -k 0\n";
-            myfile << "set -k -p theta " << azi << "\n";
-            myfile << "set -k -p phi " << ele << "\n";
+
             //myfile << cmds;
             myfile.close();
-        
+
         }
     }
 
@@ -126,20 +115,44 @@ public:
     {
         // Call Justin's code using slider parameters and file
         // callAudioBackend( File file, int azimuth, int elevation )
-     
-        std::filebuf fb;
-        
+			std::thread(&Interfacer::myMain, interfacer).detach();
+
+            std::string cmds, fp, azi, ele;
+            fp = targetFile.getFullPathName().toStdString();
+            azi = std::to_string(azimuthSlider.getValue());
+            ele =  std::to_string(elevationSlider.getValue());
+			std::cout << azi << std::endl;
+            cmds = "import -file " + fp ;
+            interfacer->handle_input(cmds);
+            cmds = "add -s " + fp + " " + "0" ;
+            interfacer->handle_input(cmds);
+
+            cmds = "select -s " + fp ;
+            interfacer->handle_input(cmds);
+
+            cmds = "select -k 0";
+            interfacer->handle_input(cmds);
+
+            cmds = "set -k -p theta " + azi;
+            interfacer->handle_input(cmds);
+
+            cmds = "set -k -p phi " + ele ;
+            interfacer->handle_input(cmds);
+			interfacer->handle_input("play");
+
+       /* std::filebuf fb;
+
         if (fb.open ("t",std::ios::in))
         {
             std::istream is(&fb);
-            interfacer->setInStream(&is); 
+            interfacer->setInStream(&is);
             std::thread(&Interfacer::myMain, interfacer).detach();
-        }
+        }*/
 
         /*
-        
+
         callAudioBackend( targetFile, (int)azimuthSlider.getValue(), (int)azimuthElevation.getValue() )
-        
+
         */
     }
     	juce::File targetFile;
@@ -150,10 +163,10 @@ private:
     Label  azimuthLabel;
     Slider elevationSlider;
     Label  elevationLabel;
-    
+
     TextButton openButton;
     TextButton exportButton;
-    
+
     TextButton playButton;
 
 
