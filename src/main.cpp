@@ -21,6 +21,8 @@ bool animePlay = false;
 bool done = false;
 bool pause = true;
 std::string selectedSource = "";
+std::string selectedComposition = "";
+
 int keyFrameSelected = 0;
 
 const int frameStop = 44100 * 50 ;
@@ -33,6 +35,7 @@ std::string SSPNames[] = 	{"position", 	"radius",	"theta",	"phi",	"scale",	"loop
 
 void set_property_keyframe(std::string propertyName, std::string propertyValue);
 void set_property_source(std::string propertyName, std::string propertyValue);
+void set_property_composition(std::string propertyName, std::string propertyValue);
 
 void foo(){
 	while(!done){
@@ -170,7 +173,9 @@ std::vector<std::string> split(const std::string& s, char delimiter)
    }
    return tokens;
 };
-
+int export_final(std::string filename){
+	return 0;
+}
 //this is really wack
 //but deadlines demand of us
 //mediocre hacks
@@ -211,8 +216,12 @@ void handle_input(std::istream *is){
 			std::cout << "Added file \"" << line[2] << "\" successfully." << std::endl;
 		}
 	} else if(line[0] ==  "export") {
-		//export
-		std::cout << "Exporting Not Yet Supported, Stay Tuned." << std::endl;
+		if(export_final(line [1]) == 0){
+			std::cout << "Exporting Not Yet Supported, Stay Tuned." << std::endl;
+		}
+		else {
+			std::cout << "Error exporting to file." << std::endl;
+		}
 	} else if(line[0] ==  "select") {
 		//select
 		if(line[1] == "-source" || line[1] == "-s"){
@@ -240,6 +249,21 @@ void handle_input(std::istream *is){
 				}
 			} else {
 				std::cout << "ERROR selecting keyframe: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
+			}
+		}
+		else if(line[1] == "-composition" || line[1] == "-c"){
+			//select compostion
+			if(line.size() == 3){
+				//anime->addSource(line[2], trackList.at(std::stoi(line[3], nullptr, 10)));
+				if(true){
+					selectedComposition = line[2];
+					//keyFrameSelected = 0;
+					std::cout << "Selectd composition \"" << selectedComposition << "\"" << std::endl;
+				} else {
+					std::cout << "Could not find \"" << line[2] << "\". Current selected composition: " << selectedComposition << std::endl;
+				}
+			} else {
+				std::cout << "ERROR selecting source: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
 			}
 		}
 	} else if (line[0] ==  "add"){
@@ -329,11 +353,38 @@ void handle_input(std::istream *is){
 					std::string propertyToEdit = line[3];
 					std::string propertyValNew = line[4];
 					set_property_keyframe(propertyToEdit, propertyValNew);
+				} else if(line[1] == "-composition" || line[1] == "-c"){
+					std::string propertyToEdit = line[3];
+					std::string propertyValNew = line[4];
+					set_property_composition(propertyToEdit, propertyValNew);
 				}
 			}
 		}
 	} else {
 		std::cout << "Input Not Recognized!"<< std::endl;
+	}
+};
+
+void set_property_composition(std::string propertyName, std::string propertyValue){
+	/*int p = -1;
+	for(int i = 0; i < END; i++){
+		if(propertyName == SSPNames[i]){
+			p = i;
+			break;
+		}
+	}*/
+	if(propertyName == "name"){
+		//anime->getSource(selectedSource)->source->setName(propertyValue);
+		selectedComposition = propertyValue;
+	} else if (propertyName == "start_time") {
+		try{
+			//double value = (double)std::stod(propertyValue);
+			//anime->getSource(selectedSource)->timeStart_s = value;
+		} catch (const std::invalid_argument& e){
+			//std::cout << "Error setting property: " << "start_time" << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
+		}
+	} else {
+		std::cout << "ERROR: Not A composition Property!" << std::endl;
 	}
 };
 
