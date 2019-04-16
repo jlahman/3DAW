@@ -16,6 +16,9 @@
 
   ==============================================================================
 */
+#include "../src/interfacer.h"
+#include <iostream>
+#include <fstream>
 
 #pragma once
 
@@ -31,7 +34,7 @@ public:
         azimuthSlider.setRange (-180, 180);         
         azimuthSlider.setTextValueSuffix (" Degrees");     
         azimuthSlider.addListener (this);            
-		azimuthSlider.setNumDecimalPlacesToDisplay(2);
+	//	azimuthSlider.setNumDecimalPlacesToDisplay(2);
 
         addAndMakeVisible (azimuthLabel);
         azimuthLabel.setText ("Azimuth", dontSendNotification);
@@ -41,7 +44,7 @@ public:
 		elevationSlider.setRange(-90, 90);
         elevationSlider.setTextValueSuffix (" Degrees");
         elevationSlider.addListener (this);
-		elevationSlider.setNumDecimalPlacesToDisplay(2);
+		//elevationSlider.setNumDecimalPlacesToDisplay(2);
 
         addAndMakeVisible (elevationLabel);
         elevationLabel.setText ("Elevation", dontSendNotification);
@@ -53,6 +56,10 @@ public:
         addAndMakeVisible (openButton);
         openButton.setButtonText ("Open...");
         openButton.onClick = [this] { openButtonClicked(); };
+        
+        //addAndMakeVisible (playButton);
+        //playButton.setButtonText ("Play");
+        //playButton.onClick = [this] { playButtonClicked(); };
 
         addAndMakeVisible (exportButton);
         exportButton.setButtonText ("Export");
@@ -63,7 +70,11 @@ public:
         setSize (600, 150);
     }
 
-    ~MainContentComponent() {}
+    ~MainContentComponent() {
+        //delete interfacer;
+    }
+    
+    Interfacer * interfacer = new Interfacer();
 
     void resized() override
     {
@@ -72,6 +83,8 @@ public:
         elevationSlider .setBounds (sliderLeft, 50, getWidth() - sliderLeft - 10, 20);
         openButton.setBounds (sliderLeft, 80, getWidth() - sliderLeft - 10, 20);
         exportButton.setBounds (sliderLeft, 110, getWidth() - sliderLeft - 10, 20);
+        playButton.setBounds (sliderLeft, 130, getWidth() - sliderLeft - 10, 20);
+
     }
 
     void sliderValueChanged (Slider* slider) override
@@ -87,6 +100,25 @@ public:
         if (chooser.browseForFileToOpen())                                    
         {
             targetFile = chooser.getResult();   
+               std::ofstream myfile("t", std::ios::out);
+               if(!myfile.is_open())
+                std::cout << "aksljdlf";
+        //myfile.open ("test.txt");
+            std::string cmds, fp, azi, ele;
+            fp = targetFile.getFullPathName().toStdString();
+            azi = (int)azimuthSlider.getValue();
+            ele = (int)elevationSlider.getValue();
+            myfile << "import -file ";
+            myfile << fp;
+            myfile << "\n";
+            myfile << "add -s " << fp << " " << "0\n" ;
+            myfile << "select -s " << fp << "\0";
+            myfile << "select -k 0\n";
+            myfile << "set -k -p theta " << azi << "\n";
+            myfile << "set -k -p phi " << ele << "\n";
+            //myfile << cmds;
+            myfile.close();
+        
         }
     }
 
@@ -94,13 +126,24 @@ public:
     {
         // Call Justin's code using slider parameters and file
         // callAudioBackend( File file, int azimuth, int elevation )
+     
+        std::filebuf fb;
         
+        if (fb.open ("t",std::ios::in))
+        {
+            std::istream is(&fb);
+            interfacer->setInStream(&is); 
+            std::thread(&Interfacer::myMain, interfacer).detach();
+        }
+
         /*
         
         callAudioBackend( targetFile, (int)azimuthSlider.getValue(), (int)azimuthElevation.getValue() )
         
         */
     }
+    	juce::File targetFile;
+
 
 private:
     Slider azimuthSlider;
@@ -111,8 +154,8 @@ private:
     TextButton openButton;
     TextButton exportButton;
     
-	juce::File targetFile;
-    
+    TextButton playButton;
+
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
