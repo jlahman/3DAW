@@ -8,7 +8,7 @@ AudioPlayer::AudioPlayer()
 {
     /* initialise variables */
     timingCounter = 0;
-	bufferMax = 2*44100*1.5;
+	bufferMax = 2*44100*0.25;
 	bufferSize = 0;// 2*44100*1.5;
 	bufferIntern = &bufferSwap1;
 	bufferExtern = &bufferSwap2;

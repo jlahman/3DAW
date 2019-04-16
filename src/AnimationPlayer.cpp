@@ -131,7 +131,6 @@ std::vector<SoundSource*> AnimationPlayer::getSources(){
 	return returnList;
 }
 
-
 SoundSource* AnimationPlayer::getSource(MasterSource  *s, double time_s){
 	SoundSource* instSource = NULL;
 
@@ -288,8 +287,10 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 			Polar3D *p = (*source)->getProperties()->position;
 
 			double aziIndex = hrir->getIndices(p->theta, p->phi)[0];
+			//std::cout << aziIndex << std::endl;
 
 			int eleIndex = (int)hrir->getIndices(p->theta, p->phi)[1];
+			std::cout << eleIndex << std::endl;
 
 			interpolateHRIR_linear(aziIndex, eleIndex, true, hrirLL);
 			convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);

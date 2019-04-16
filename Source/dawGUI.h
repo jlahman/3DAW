@@ -67,6 +67,9 @@ public:
         exportButton.setColour (TextButton::buttonColourId, Colours::green);
         exportButton.setEnabled (false);
 
+		std::thread(&Interfacer::myMain, interfacer).detach();
+
+
         setSize (600, 150);
     }
 
@@ -89,7 +92,24 @@ public:
 
     void sliderValueChanged (Slider* slider) override
     {
-		if (slider == &azimuthSlider) {}
+		if (slider == &azimuthSlider) {
+			std::string azi, ele, cmds;
+			 azi = std::to_string(azimuthSlider.getValue());
+		      ele =  std::to_string(elevationSlider.getValue());
+			  cmds = "select -k 0";
+			  interfacer->handle_input(cmds);
+
+			  cmds = "set -k -p theta " + azi;
+			  interfacer->handle_input(cmds);
+
+			  cmds = "list -k ";
+			interfacer->handle_input(cmds);
+
+
+			  cmds = "set -k -p phi " + ele ;
+			  interfacer->handle_input(cmds);
+
+}
 		else if (slider == &elevationSlider) {}
 
     }
@@ -100,13 +120,28 @@ public:
         if (chooser.browseForFileToOpen())
         {
             targetFile = chooser.getResult();
-               std::ofstream myfile("t", std::ios::out);
-               if(!myfile.is_open())
-                std::cout << "aksljdlf";
-        //myfile.open ("test.txt");
+			std::string cmds, fp, azi, ele;
+			fp = targetFile.getFullPathName().toStdString();
+			azi = std::to_string(azimuthSlider.getValue());
+			ele =  std::to_string(elevationSlider.getValue());
+			std::cout << azi << std::endl;
+			cmds = "import -file " + fp ;
+			interfacer->handle_input(cmds);
+			index++;
+			cmds = "add -s " + fp + " " + std::to_string(index);
+			interfacer->handle_input(cmds);
 
-            //myfile << cmds;
-            myfile.close();
+			cmds = "select -s " + fp ;
+			interfacer->handle_input(cmds);
+
+			cmds = "select -k 0";
+			interfacer->handle_input(cmds);
+
+			cmds = "set -k -p theta " + azi;
+			interfacer->handle_input(cmds);
+
+			cmds = "set -k -p phi " + ele ;
+			interfacer->handle_input(cmds);
 
         }
     }
@@ -115,30 +150,11 @@ public:
     {
         // Call Justin's code using slider parameters and file
         // callAudioBackend( File file, int azimuth, int elevation )
-			std::thread(&Interfacer::myMain, interfacer).detach();
-
-            std::string cmds, fp, azi, ele;
-            fp = targetFile.getFullPathName().toStdString();
-            azi = std::to_string(azimuthSlider.getValue());
-            ele =  std::to_string(elevationSlider.getValue());
-			std::cout << azi << std::endl;
-            cmds = "import -file " + fp ;
-            interfacer->handle_input(cmds);
-            cmds = "add -s " + fp + " " + "0" ;
-            interfacer->handle_input(cmds);
-
-            cmds = "select -s " + fp ;
-            interfacer->handle_input(cmds);
-
-            cmds = "select -k 0";
-            interfacer->handle_input(cmds);
-
-            cmds = "set -k -p theta " + azi;
-            interfacer->handle_input(cmds);
-
-            cmds = "set -k -p phi " + ele ;
-            interfacer->handle_input(cmds);
-			interfacer->handle_input("play");
+			play = !play;
+			if(play)
+				interfacer->handle_input("play");
+			else
+				interfacer->handle_input("pause");
 
        /* std::filebuf fb;
 
@@ -163,6 +179,8 @@ private:
     Label  azimuthLabel;
     Slider elevationSlider;
     Label  elevationLabel;
+	int index = -1;
+	bool play = false;
 
     TextButton openButton;
     TextButton exportButton;

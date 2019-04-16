@@ -21,7 +21,7 @@ public:
 	Interfacer();
 	std::vector<Track*> trackList;
 	AudioPlayer ap = AudioPlayer();
-	AnimationPlayer * anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
+	AnimationPlayer * anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_059/hrir_final.mat");
 	const int framesPerAnimationStep = 1024;
 	int frameCount = 0;
 	bool animePlay = false;
@@ -30,7 +30,7 @@ public:
 	std::string selectedSource = "";
 	int keyFrameSelected = 0;
 
-	const int frameStop = 44100 * 50 ;
+	const int frameStop = 44100 * 180 ;
 
 	double ** audioOut = NULL;
 	double ** overflow = NULL;

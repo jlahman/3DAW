@@ -346,7 +346,6 @@ void Interfacer::handle_input(std::string input){
 	std::cout << line[1] << std::endl;
 	std::cout << line[2] << std::endl;
 		if(line[1] == "-file" || line[1] == "-f"){
-
 			Track * track = new Track(line[2]);
 			trackList.push_back(track);
 			std::cout << "Added file \"" << line[2] << "\" successfully." << std::endl;
