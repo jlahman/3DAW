@@ -47,6 +47,13 @@ MasterSource * AnimationPlayer::getSourceAt(int index){
 
 void AnimationPlayer::addSource(std::string sourceName, Track * track){
 	  sourceList.push_back(new MasterSource(new SoundSource(track, sourceName), 0.0, 0.0));
+
+	  SoundSourceProperties* p = new SoundSourceProperties( new Polar3D( sourceList.at(sourceList.size()-1)->source->getProperties()->position->radius,
+																	   		sourceList.at(sourceList.size()-1)->source->getProperties()->position->theta,
+																	   		sourceList.at(sourceList.size()-1)->source->getProperties()->position->phi),
+															   sourceList.at(sourceList.size()-1)->source->getProperties()->isLooping,
+															   sourceList.at(sourceList.size()-1)->source->getProperties()->isVisible);
+	  sourceList.at(sourceList.size()-1)->keyFrameList.push_back(new KeyFrame(p, 0.0));
 }
 
 int AnimationPlayer::addKeyFrame(std::string sourceName, double time_s, SoundSourceProperties * ssp){
@@ -244,59 +251,60 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 		audioData = (*source)->getAudioData();
 		//printf("Audio Length%d\t%E\n", (*source)->getLength(),(*source)->getLength()/44100.0 );
 		double start = 0.0;//(*source)->timeStart_s;
-
-		for(int i = 0; i < sourceChunkSize; i++){
-			if(start > frameTime){
-				mDataChunk[i] = 0;
-			}
-			else{
-				if((*source)->getProperties()->isLooping){
-					double scale = (*source)->getProperties()->scale;
-					mDataChunk[i] = scale*audioData[(i+frameStart)%(*source)->getLength()];
-				} else {
-					if(i + frameStart >= (*source)->getLength()){
-						mDataChunk[i] = 0;
-					} else{
+		if((*source)->getProperties()->isVisible){
+			for(int i = 0; i < sourceChunkSize; i++){
+				if(start > frameTime){
+					mDataChunk[i] = 0;
+				}
+				else{
+					if((*source)->getProperties()->isLooping){
 						double scale = (*source)->getProperties()->scale;
-						mDataChunk[i] = scale* audioData[i+frameStart];
+						mDataChunk[i] = scale*audioData[(i+frameStart)%(*source)->getLength()];
+					} else {
+						if(i + frameStart >= (*source)->getLength()){
+							mDataChunk[i] = 0;
+						} else{
+							double scale = (*source)->getProperties()->scale;
+							mDataChunk[i] = scale* audioData[i+frameStart];
+						}
 					}
 				}
+				frameTime += 1.0/44100.0;
+				//delete (*source)->getProperties();
 			}
-			frameTime += 1.0/44100.0;
-			//delete (*source)->getProperties();
-		}
-		Polar3D *p = (*source)->getProperties()->position;
+			Polar3D *p = (*source)->getProperties()->position;
 
-		double aziIndex = hrir->getIndices(p->theta, p->phi)[0];
+			double aziIndex = hrir->getIndices(p->theta, p->phi)[0];
 
-		int eleIndex = (int)hrir->getIndices(p->theta, p->phi)[1];
+			int eleIndex = (int)hrir->getIndices(p->theta, p->phi)[1];
 
-		interpolateHRIR_linear(aziIndex, eleIndex, true, hrirLL);
-		convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);
+			interpolateHRIR_linear(aziIndex, eleIndex, true, hrirLL);
+			convolve(mDataChunk, sourceChunkSize, hrirLL, 200, convDataL);
 
-		interpolateHRIR_linear(aziIndex, eleIndex, false, hrirLR);
-		convolve(mDataChunk, sourceChunkSize, hrirLR, 200, convDataR);
+			interpolateHRIR_linear(aziIndex, eleIndex, false, hrirLR);
+			convolve(mDataChunk, sourceChunkSize, hrirLR, 200, convDataR);
 
 
-		for(int i =0; i< length; i++){
-			buffer[0][i] += convDataL[i];
-			buffer[1][i] += convDataR[i];
-			if(abs(buffer[0][i]) > 1.0){
-				buffer[0][i] = buffer[0][i]/abs(buffer[0][i]);
+			for(int i =0; i< length; i++){
+				buffer[0][i] += convDataL[i];
+				buffer[1][i] += convDataR[i];
+				if(abs(buffer[0][i]) > 1.0){
+					buffer[0][i] = buffer[0][i]/abs(buffer[0][i]);
+				}
+				if(abs(buffer[1][i]) > 1.0){
+					buffer[1][i] = buffer[1][i]/abs(buffer[1][i]);
+				}
 			}
-			if(abs(buffer[1][i]) > 1.0){
-				buffer[1][i] = buffer[1][i]/abs(buffer[1][i]);
-			}
-		}
 
-		for(int i =length; i< length + 199; i++){
-			overflow[0][i-length] += convDataL[i];
-			overflow[1][i-length] += convDataR[i];
-			if(abs(overflow[0][i-length]) > 1.0){
-				overflow[0][i-length] = overflow[0][i-length]/abs(overflow[1][i-length]);
-			}
-			if(abs(overflow[1][i-length]) > 1.0){
-				overflow[1][i-length] = overflow[1][i-length]/abs(overflow[1][i-length]);
+			for(int i =length; i< length + 199; i++){
+				overflow[0][i-length] += convDataL[i];
+				overflow[1][i-length] += convDataR[i];
+				if(abs(overflow[0][i-length]) > 1.0){
+					overflow[0][i-length] = overflow[0][i-length]/abs(overflow[1][i-length]);
+				}
+				if(abs(overflow[1][i-length]) > 1.0){
+					overflow[1][i-length] = overflow[1][i-length]/abs(overflow[1][i-length]);
+				}
 			}
 		}
 	}

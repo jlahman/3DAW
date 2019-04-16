@@ -4,6 +4,7 @@
 #include <cstring>
 #include <thread>
 #include <sstream>
+#include <fstream>
 
 #include"Track.h"
 #include"util.h"
@@ -95,7 +96,7 @@ void foo(){
 	}
 }
 
-void handle_input();
+void handle_input( std::istream *is);
 
 int main(int argc,  char * argv[])
 {
@@ -115,8 +116,24 @@ int main(int argc,  char * argv[])
 		done = false;
 		std::thread(foo).detach();
 		ap.start();
+		//file loading
+		std::filebuf fb;
+		if (fb.open ("test_input.txt",std::ios::in))
+		{
+			std::istream is(&fb);
+			while (is){
+				handle_input(&is);
+			}
+			fb.close();
+		}
+
+	//	std::string line;
+	//	while (std::getline(std::cin, line))
+		//{
+		//    handle_input();
+	//	}
 		while(!done){
-			handle_input();
+			handle_input(&std::cin);
 		}
 		ap.close();
 	}
@@ -127,7 +144,7 @@ int main(int argc,  char * argv[])
 	for(int i = 0; i < trackList.size(); i++){
 		delete trackList[i];
 	}
-	
+
 	//finally it's done
 	//what needed to long ago
 	delete anime;
@@ -157,9 +174,9 @@ std::vector<std::string> split(const std::string& s, char delimiter)
 //this is really wack
 //but deadlines demand of us
 //mediocre hacks
-void handle_input(){
+void handle_input(std::istream *is){
 	std::string input;
-	std::getline(std::cin, input);
+	std::getline(*is, input);
 	char delim = ' ';
 	std::vector<std::string>line = split((const std::string) input, delim);
 	if(line.size() == 0) return;
@@ -235,7 +252,7 @@ void handle_input(){
 			}
 		}
 		else if(line[1] == "-keyframe" || line[1] == "-k"){
-			anime->addKeyFrame(selectedSource, std::stoi(line[2], nullptr, 10)/1000.0, new SoundSourceProperties(new Polar3D(1.0, 0.0, 0.0), true, true));
+			anime->addKeyFrame(selectedSource, std::stod(line[2]), new SoundSourceProperties(new Polar3D(1.0, 0.0, 0.0), true, true));
 			std::cout << "Added new KeyFrame at time (ms) \"" << line[2] << "\" successfully." << std::endl;
 		}
 	}  else if(line[0] ==  "list") {
