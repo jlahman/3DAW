@@ -1,4 +1,6 @@
 #include<matio.h>
+#include<cmath>
+
 #include"HRIR_Data.h"
 #include"util.h"
 
@@ -122,19 +124,26 @@ double* HRIR_Data::getIndices(double azi, double ele){
   e = 8; // horizontal plane, front
   if(azi > 90){
     azi = 90 - (azi - 90);
-    ele = ele + 180;
+    ele = fmod(ele + 180, 360);
     e = 40; //horizontal plane, back
   } else if(azi < -90){
     azi = -90 - (azi + 90);
-    ele = ele + 180;
+    ele = fmod(ele + 180, 360);;
     e = 40;// horizontal plane, back
-  }
+	}
+
+	if(ele < -45 || ele > 230.625){
+		ele += 45;
+		ele = fmod(ele, 360);
+		ele -= 45;
+	}
 //  if(azi < -80){
 //    a = lerp(-1, 0, abs(azi), -80, -90);
 //  } else if(azi > 80) {
 //    a = lerp(24, 25, abs(azi), 80, 90);
 //  }else {
     a = findClosestWeightedIndex(azimuths, 27, azi);
+	e = findClosestWeightedIndex(elevations, 50, ele);
 //  }
   ret[0] = a;
   ret[1] = e;
