@@ -94,12 +94,25 @@ void Interfacer::foo(){
 					audioOutInterlaced[2*i] = audioOut[0][i];
 					audioOutInterlaced[2*i+ 1] = audioOut[1][i];
 				}
+				if(audioOutInterlaced[2*i] > 1.0){
+					audioOutInterlaced[2*i] = 1.0;
+				} else if(audioOutInterlaced[2*i] < -1.0){
+					audioOutInterlaced[2*i] = -1.0;
+				}
+				if(audioOutInterlaced[2*i+1] > 1.0){
+					audioOutInterlaced[2*i+1] = 1.0;
+				} else if(audioOutInterlaced[2*i+1] < -1.0){
+					audioOutInterlaced[2*i+1] = -1.0;
+				}
 			}
+
+			//theres still discontinuities when writeLength < 200
 			for(int i = writeLength; i < 199 && overflow != NULL; i++){
 				newOverflow[0][i-writeLength] += overflow[0][i];
 				newOverflow[1][i-writeLength] += overflow[1][i];
 
 			}
+
 			if(overflow != NULL){
 				delete[] overflow[0];
 				delete[] overflow[1];
@@ -140,9 +153,9 @@ std::vector<std::string> Interfacer::split(const std::string& s, char delimiter)
 //this is really wack
 //but deadlines demand of us
 //mediocre hacks
-void Interfacer::handle_input(std::string input){
+void handle_input(std::string input){
+	std::getline(*is, input);
 	char delim = ' ';
-
 	std::vector<std::string>line = split((const std::string) input, delim);
 
 	if(line.size() == 0) return;
@@ -171,16 +184,18 @@ void Interfacer::handle_input(std::string input){
 	//more elegant ways exist
 	//map strings to enum
 	else if(line[0] ==  "import"){
-	std::cout << line[1] << std::endl;
-	std::cout << line[2] << std::endl;
 		if(line[1] == "-file" || line[1] == "-f"){
 			Track * track = new Track(line[2]);
 			trackList.push_back(track);
 			std::cout << "Added file \"" << line[2] << "\" successfully." << std::endl;
 		}
 	} else if(line[0] ==  "export") {
-		//export
-		std::cout << "Exporting Not Yet Supported, Stay Tuned." << std::endl;
+		if(export_final(line [1]) == 0){
+			std::cout << "Exporting Not Yet Supported, Stay Tuned." << std::endl;
+		}
+		else {
+			std::cout << "Error exporting to file." << std::endl;
+		}
 	} else if(line[0] ==  "select") {
 		//select
 		if(line[1] == "-source" || line[1] == "-s"){
@@ -208,6 +223,21 @@ void Interfacer::handle_input(std::string input){
 				}
 			} else {
 				std::cout << "ERROR selecting keyframe: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
+			}
+		}
+		else if(line[1] == "-composition" || line[1] == "-c"){
+			//select compostion
+			if(line.size() == 3){
+				//anime->addSource(line[2], trackList.at(std::stoi(line[3], nullptr, 10)));
+				if(true){
+					selectedComposition = line[2];
+					//keyFrameSelected = 0;
+					std::cout << "Selectd composition \"" << selectedComposition << "\"" << std::endl;
+				} else {
+					std::cout << "Could not find \"" << line[2] << "\". Current selected composition: " << selectedComposition << std::endl;
+				}
+			} else {
+				std::cout << "ERROR selecting source: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
 			}
 		}
 	} else if (line[0] ==  "add"){
@@ -297,6 +327,10 @@ void Interfacer::handle_input(std::string input){
 					std::string propertyToEdit = line[3];
 					std::string propertyValNew = line[4];
 					set_property_keyframe(propertyToEdit, propertyValNew);
+				} else if(line[1] == "-composition" || line[1] == "-c"){
+					std::string propertyToEdit = line[3];
+					std::string propertyValNew = line[4];
+					set_property_composition(propertyToEdit, propertyValNew);
 				}
 			}
 		}
@@ -394,3 +428,30 @@ void Interfacer::set_property_keyframe(std::string propertyName, std::string pro
 			std::cout << "ERROR: Not A Key Frame Property!" << std::endl;
 	}
 };
+
+void set_property_composition(std::string propertyName, std::string propertyValue){
+	/*int p = -1;
+	for(int i = 0; i < END; i++){
+		if(propertyName == SSPNames[i]){
+			p = i;
+			break;
+		}
+	}*/
+	if(propertyName == "name"){
+		//anime->getSource(selectedSource)->source->setName(propertyValue);
+		selectedComposition = propertyValue;
+	} else if (propertyName == "start_time") {
+		try{
+			//double value = (double)std::stod(propertyValue);
+			//anime->getSource(selectedSource)->timeStart_s = value;
+		} catch (const std::invalid_argument& e){
+			//std::cout << "Error setting property: " << "start_time" << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
+		}
+	} else {
+		std::cout << "ERROR: Not A composition Property!" << std::endl;
+	}
+};
+
+int export_final(std::string filename){
+	return 0;
+}

@@ -41,6 +41,8 @@ private:
 	bool pause = true;
 
 	std::string selectedSource = "";
+	std::string selectedComposition = "";
+
 	int keyFrameSelected = 0;
 	double ** audioOut = NULL;
 	double ** overflow = NULL;
