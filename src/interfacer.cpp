@@ -1,7 +1,65 @@
 #include "interfacer.h"
 
 Interfacer::Interfacer(){
+	//init members
 	std::cout << "started main program. \n" << std::endl;
+}
+
+Interfacer::~Interfacer(){
+	//delete members
+	std::cout << "Ending main program. \n" << std::endl;
+}
+
+int Interfacer::myMain()
+{
+
+    PaError err;
+
+    printf("PortAudio Test\n");
+	err = Pa_Initialize();
+	if( err != paNoError ) goto error;
+
+	if (ap.open(Pa_GetDefaultOutputDevice()))
+	{
+		done = false;
+		std::thread(&Interfacer::foo, this).detach();
+
+		//file loading: from a project state?
+		/*std::filebuf fb;
+		if (fb.open ("test_input.txt",std::ios::in))
+		{
+			std::istream is(&fb);
+			while (is){
+				handle_input(&is);
+			}
+			fb.close();
+		}*/
+
+		while(!done){
+			//TODO: if no-gui, grab input from cin and send to input
+		}
+		ap.close();
+	}
+
+	Pa_Terminate();
+	printf("Exiting Application... finished!\n");
+
+	for(int i = 0; i < trackList.size(); i++){
+		delete trackList[i];
+	}
+
+	//finally it's done
+	//what needed to long ago
+	delete anime;
+
+	return err;
+
+	error:
+		Pa_Terminate();
+		fprintf( stderr, "An error occured while using the portaudio stream\n" );
+		fprintf( stderr, "Error number: %d\n", err );
+		fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+		return err;
 }
 
 void Interfacer::foo(){
@@ -66,64 +124,6 @@ void Interfacer::foo(){
 	}
 }
 
-void Interfacer::setInStream(std::istream *inStream){
-	this->inStream = inStream;
-}
-
-
-int Interfacer::myMain()
-{
-
-    PaError err;
-
-    printf("PortAudio Test\n");
-	err = Pa_Initialize();
-	if( err != paNoError ) goto error;
-
-	if (ap.open(Pa_GetDefaultOutputDevice()))
-	{
-		done = false;
-		std::thread(&Interfacer::foo, this).detach();
-		ap.start();
-		//file loading
-		std::filebuf fb;
-		/*if (fb.open ("test_input.txt",std::ios::in))
-		{
-			std::istream is(&fb);
-			while (is){
-				handle_input(&is);
-			}
-			fb.close();
-		}*/
-
-		while(!done){
-			//std::cout << "before" << std::endl;
-			//handle_input(inStream);
-			//std::cout << "after" << std::endl;
-		}
-		ap.close();
-	}
-
-	Pa_Terminate();
-	printf("Exiting Application... finished!\n");
-
-	for(int i = 0; i < trackList.size(); i++){
-		delete trackList[i];
-	}
-
-	//finally it's done
-	//what needed to long ago
-	delete anime;
-
-	return err;
-
-	error:
-		Pa_Terminate();
-		fprintf( stderr, "An error occured while using the portaudio stream\n" );
-		fprintf( stderr, "Error number: %d\n", err );
-		fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
-		return err;
-}
 //from fluentcpp: https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
 std::vector<std::string> Interfacer::split(const std::string& s, char delimiter)
 {
@@ -140,178 +140,6 @@ std::vector<std::string> Interfacer::split(const std::string& s, char delimiter)
 //this is really wack
 //but deadlines demand of us
 //mediocre hacks
-/*
-void Interfacer::handle_input(std::istream *is){
-	std::string input;			std::cout << "Error going to selected time!" << std::endl;
-
-	std::getline(*inStream, input);			std::cout << "Error going to selected time!" << std::endl;
-
-	char delim = ' ';			std::cout << "Error going to selected time!" << std::endl;
-
-	std::vector<std::string>line = split((const std::string) input, delim);			std::cout << "Error going to selected time!" << std::endl;
-
-	if(line.size() == 0) return;
- 	//std::cout << std::string( 100, '\n' );
- 	if(line[0]  == "play"){
-		pause = false;
-		animePlay = true;
-		ap.start();
-	} else if(line[0]  == "pause"){
-		pause = true;
-		animePlay = false;
-		ap.stop();
-	} else if(line[0] == "restart" || line[0] == "r") {
-		frameCount = 0;
-	} else if(line[0] == "goto" && line.size() == 2) {
-		try{
-			double value = std::stod(line[1]);
-			frameCount = (int)value * 44100;
-		} catch (const std::invalid_argument& e){
-			std::cout << "Error going to selected time!" << std::endl;
-		}
-	} else if(line[0] == "q" || line[0] == "quit") {
-		done = true;
-	}
-	//seeing this, need rum
-	//more elegant ways exist
-	//map strings to enum
-	else if(line[0] ==  "import"){			std::cout << "Error going to selected time!" << std::endl;
-std::cout << line[0] << std::endl;
-std::cout << line[1] << std::endl;
-std::cout << line[2] << std::endl;
-		if(line[1] == "-file" || line[1] == "-f"){			std::cout << "Error going to selected time!" << std::endl;
-
-			Track * track = new Track(line[2]);
-			trackList.push_back(track);
-			std::cout << "Added file \"" << line[2] << "\" successfully." << std::endl;
-		}
-	} else if(line[0] ==  "export") {
-		//export
-		std::cout << "Exporting Not Yet Supported, Stay Tuned." << std::endl;
-	} else if(line[0] ==  "select") {
-		//select
-		if(line[1] == "-source" || line[1] == "-s"){
-			if(line.size() == 3){
-				//anime->addSource(line[2], trackList.at(std::stoi(line[3], nullptr, 10)));
-				if(anime->hasSource(line[2])){
-					selectedSource = line[2];
-					keyFrameSelected = 0;
-					std::cout << "Selectd Source \"" << selectedSource << "\"" << std::endl;
-				} else {
-					std::cout << "Could not find \"" << line[2] << "\". Current selected source: " << selectedSource << std::endl;
-				}
-			} else {
-				std::cout << "ERROR selecting source: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
-			}
-		}
-		else if(line[1] == "-keyframe" || line[1] == "-k"){
-			//select keyframe
-			if(line.size() == 3){
-				if(anime->getSource(selectedSource)->keyFrameList.size() > std::stoi(line[2], nullptr, 10) &&  std::stoi(line[2], nullptr, 10) >= 0){
-					keyFrameSelected = std::stoi(line[2], nullptr, 10);
-					std::cout << "Selectd Key Frame "<< line[2] << " of source \"" << selectedSource << "\"" << std::endl;
-				} else {
-					std::cout << "Keyframe " << line[2] << " of Current selected source: " << selectedSource << "does not exist.\n\tIs the right source selected?" <<std::endl;
-				}
-			} else {
-				std::cout << "ERROR selecting keyframe: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
-			}
-		}
-	} else if (line[0] ==  "add"){
-		if(line[1] == "-source" || line[1] == "-s"){
-			if(line.size() == 4){
-				anime->addSource(line[2], trackList.at(std::stoi(line[3], nullptr, 10)));
-				std::cout << "Added new Source \"" << line[2] << "\t"<< line[3] << "\" successfully." << std::endl;
-			} else {
-				std::cout << "ERROR adding new Source: wrong number of arguments! expected: 4, got: " << line.size() << std::endl;
-			}
-		}
-		else if(line[1] == "-keyframe" || line[1] == "-k"){
-			anime->addKeyFrame(selectedSource, std::stod(line[2]), new SoundSourceProperties(new Polar3D(1.0, 0.0, 0.0), true, true));
-			std::cout << "Added new KeyFrame at time (ms) \"" << line[2] << "\" successfully." << std::endl;
-		}
-	}  else if(line[0] ==  "list") {
-		if(line[1] == "-source" || line[1] == "-s"){
-			std::cout << "\nSources in Composition: " << time << std::endl;
-			for(int i = 0; i < anime->getSources().size(); i ++){
-				std::cout << "\t|====> " << anime->getSources().at(i)->getName() << "\t: Index: \t" << i << " Length (s):\t" << anime->getSources().at(i)->getLength()/44100.0 << std::endl;
-			}
-			std::cout << "\t|=============================================================|\n";
-		} else if(line[1] == "-keyframe" || line[1] == "-k"){
-			int index = 0;
-			int end = anime->getSource(selectedSource)->keyFrameList.size();
-			if(line.size() == 3){
-				index = std::stoi(line[2], nullptr, 10);
-				end = index+1;
-			}
-			std::cout << "\nKey Frames in Source \"" << selectedSource << "\": "<< std::endl;
-			for(int i = index; i < end ; i ++){
-				std::cout << "\t|====> : KeyFrame: " << i << "\t Time: " << anime->getSource(selectedSource)->keyFrameList.at(i)->time_s << "\n";
-				std::cout << "\t|      |---------> " << SSPNames[1] << ": \t" << anime->getSource(selectedSource)->keyFrameList.at(i)->properties->position->radius << std::endl;
-				std::cout << "\t|      |---------> " << SSPNames[2] << ": \t" << anime->getSource(selectedSource)->keyFrameList.at(i)->properties->position->theta << std::endl;
-				std::cout << "\t|      |---------> " << SSPNames[3] << ": \t" << anime->getSource(selectedSource)->keyFrameList.at(i)->properties->position->phi << std::endl;
-
-				std::cout << "\t|      |---------> " << SSPNames[4] << ": \t" << anime->getSource(selectedSource)->keyFrameList.at(i)->properties->scale << std::endl;
-				std::string temp = "false";
-				if(anime->getSource(selectedSource)->keyFrameList.at(i)->properties->isLooping == true)
-					temp = "true";
-				std::cout << "\t|      |---------> " << SSPNames[5] << ": \t" << temp << std::endl;
-				temp = "false";
-				if(anime->getSource(selectedSource)->keyFrameList.at(i)->properties->isVisible == true)
-					temp = "true";
-				std::cout << "\t|      |---------> " << SSPNames[6] << ": \t" << temp << std::endl;
-			}
-			std::cout << "\t|=============================================================|\n";
-		}
-	}  else if (line[0] ==  "remove"){
-		if(line[1] == "-source" || line[1] == "-s"){
-			if(line.size() == 3){
-				if(anime->hasSource(line[2])){
-					anime->removeSource(line[2]);
-					std::cout << "Removed Source \"" << line[2] << "\" successfully." << std::endl;
-					if(line[2] == selectedSource){
-						std::cout << "Resetting selected source to first in list if it exists" << std::endl;
-						if(!anime->getSourceAt(0))
-							selectedSource = anime->getSourceAt(0)->source->getName();
-					}
-				} else {
-					std::cout << "Source \"" << line[2] << "\" does not exist. Check for typos?" << std::endl;
-				}
-			} else {
-				std::cout << "ERROR removing Source: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
-			}
-		} else if(line[1] == "-keyframe" || line[1] == "-k"){
-			if(line.size() == 3){
-				if(anime->getSource(selectedSource)->keyFrameList.size() > std::stoi(line[2], nullptr, 10) && 0 <= std::stoi(line[2], nullptr, 10)){
-					delete anime->getSource(selectedSource)->keyFrameList.at(std::stoi(line[2], nullptr, 10));
-					anime->getSource(selectedSource)->keyFrameList.erase(anime->getSource(selectedSource)->keyFrameList.begin() + std::stoi(line[2], nullptr, 10));
-					std::cout << "Removed KeyFrame "<< line[2] << " from source \"" << selectedSource << "\" successfully. \n\tSelected key frame reset to 0!" << std::endl;
-				} else
-					std::cout << "No keyframe with that index exists!\n";
-			} else {
-				std::cout << "ERROR removing Source: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
-			}
-		}
-	}  else if(line[0] == "set"){
-		if(line.size() > 4) {
-			if(line[2] == "-property" || line[2] == "-p"){
-				if(line[1] == "-source" || line[1] == "-s"){
-					//TODO: set source property
-					std::string propertyToEdit = line[3];
-					std::string propertyValNew = line[4];
-					set_property_source(propertyToEdit, propertyValNew);
-				} else if(line[1] == "-keyframe" || line[1] == "-k"){
-					std::string propertyToEdit = line[3];
-					std::string propertyValNew = line[4];
-					set_property_keyframe(propertyToEdit, propertyValNew);
-				}
-			}
-		}
-	} else {
-		std::cout << "Input Not Recognized!"<< std::endl;
-	}
-};*/
-
 void Interfacer::handle_input(std::string input){
 	char delim = ' ';
 
