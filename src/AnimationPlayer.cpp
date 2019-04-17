@@ -98,7 +98,6 @@ int AnimationPlayer::test_KeyFrames(std::string sourceName){
 	return -1;
 }
 
-
 int AnimationPlayer::setStartTime(std::string sourceName, double time_s){
 	for(std::vector<MasterSource*>::iterator source = sourceList.begin(); source != sourceList.end(); source++){
 		if((*source)->source->getName().compare(sourceName) == 0){
@@ -212,6 +211,9 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 
 	double scale = lerp(lo->scale, hi->scale, time_s, time_lo, time_hi);
 
+	//never deleted
+	//because a lack of foresight
+	//means a poor design
 	ssp = new SoundSourceProperties(position, lo->isLooping, lo->isVisible);
 	ssp->scale = scale;
 	return ssp;
@@ -257,6 +259,12 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 	}
 
 	if(ssl.empty()){
+		if(mDataChunk != NULL)
+			delete[] mDataChunk;
+		if(convDataL != NULL)
+			delete[] convDataL;
+		if(convDataR != NULL)
+			delete[] convDataR;
 		return;
 	}
 
@@ -283,12 +291,10 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 					}
 				}
 				frameTime += 1.0/44100.0;
-				//delete (*source)->getProperties();
 			}
 			Polar3D *p = (*source)->getProperties()->position;
 
 			double aziIndex = hrir->getIndices(p->theta, p->phi)[0];
-
 			double eleIndex = hrir->getIndices(p->theta, p->phi)[1];
 
 			interpolateHRIR_linear(aziIndex, eleIndex, true, hrirLL);
@@ -296,7 +302,6 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 
 			interpolateHRIR_linear(aziIndex, eleIndex, false, hrirLR);
 			convolve(mDataChunk, sourceChunkSize, hrirLR, 200, convDataR);
-
 
 			for(int i =0; i< length; i++){
 				buffer[0][i] += convDataL[i];

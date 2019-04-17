@@ -15,7 +15,7 @@
 std::vector<Track*> trackList;
 AudioPlayer ap = AudioPlayer();
 AnimationPlayer * anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
-const int framesPerAnimationStep = 1024;
+const int framesPerAnimationStep = 256;
 int frameCount = 0;
 bool animePlay = false;
 bool done = false;
@@ -69,12 +69,25 @@ void foo(){
 					audioOutInterlaced[2*i] = audioOut[0][i];
 					audioOutInterlaced[2*i+ 1] = audioOut[1][i];
 				}
+				if(audioOutInterlaced[2*i] > 1.0){
+					audioOutInterlaced[2*i] = 1.0;
+				} else if(audioOutInterlaced[2*i] < -1.0){
+					audioOutInterlaced[2*i] = -1.0;
+				}
+				if(audioOutInterlaced[2*i+1] > 1.0){
+					audioOutInterlaced[2*i+1] = 1.0;
+				} else if(audioOutInterlaced[2*i+1] < -1.0){
+					audioOutInterlaced[2*i+1] = -1.0;
+				}
 			}
+
+			//theres still discontinuities when writeLength < 200
 			for(int i = writeLength; i < 199 && overflow != NULL; i++){
 				newOverflow[0][i-writeLength] += overflow[0][i];
 				newOverflow[1][i-writeLength] += overflow[1][i];
 
 			}
+
 			if(overflow != NULL){
 				delete[] overflow[0];
 				delete[] overflow[1];
