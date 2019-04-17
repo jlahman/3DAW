@@ -153,8 +153,7 @@ std::vector<std::string> Interfacer::split(const std::string& s, char delimiter)
 //this is really wack
 //but deadlines demand of us
 //mediocre hacks
-void handle_input(std::string input){
-	std::getline(*is, input);
+void Interfacer::handle_input(std::string input){
 	char delim = ' ';
 	std::vector<std::string>line = split((const std::string) input, delim);
 
@@ -429,7 +428,7 @@ void Interfacer::set_property_keyframe(std::string propertyName, std::string pro
 	}
 };
 
-void set_property_composition(std::string propertyName, std::string propertyValue){
+void Interfacer::set_property_composition(std::string propertyName, std::string propertyValue){
 	/*int p = -1;
 	for(int i = 0; i < END; i++){
 		if(propertyName == SSPNames[i]){
@@ -452,6 +451,6 @@ void set_property_composition(std::string propertyName, std::string propertyValu
 	}
 };
 
-int export_final(std::string filename){
+int Interfacer::export_final(std::string filename){
 	return 0;
 }

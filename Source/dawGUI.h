@@ -86,7 +86,7 @@ public:
         elevationSlider .setBounds (sliderLeft, 50, getWidth() - sliderLeft - 10, 20);
         openButton.setBounds (sliderLeft, 80, getWidth() - sliderLeft - 10, 20);
         exportButton.setBounds (sliderLeft, 110, getWidth() - sliderLeft - 10, 20);
-        playButton.setBounds (sliderLeft, 130, getWidth() - sliderLeft - 10, 20);
+        playButton.setBounds (sliderLeft, 140, getWidth() - sliderLeft - 10, 20);
 
     }
 
@@ -110,7 +110,23 @@ public:
 			  interfacer->handle_input(cmds);
 
 }
-		else if (slider == &elevationSlider) {}
+		else if (slider == &elevationSlider) {
+			std::string azi, ele, cmds;
+			 azi = std::to_string(azimuthSlider.getValue());
+		      ele =  std::to_string(elevationSlider.getValue());
+			  cmds = "select -k 0";
+			  interfacer->handle_input(cmds);
+
+			  cmds = "set -k -p theta " + azi;
+			  interfacer->handle_input(cmds);
+
+			  cmds = "list -k ";
+			interfacer->handle_input(cmds);
+
+
+			  cmds = "set -k -p phi " + ele ;
+			  interfacer->handle_input(cmds);
+		}
 
     }
 

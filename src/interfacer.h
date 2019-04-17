@@ -21,7 +21,7 @@ public:
 	Interfacer();
 	~Interfacer();
 
-	const enum SSPEnums				{POSITION,	 	RADIUS, 	THETA ,		PHI,	SCALE,		LOOPING , 	VISIBLE, END  };
+ 	enum SSPEnums					{POSITION,	 	RADIUS, 	THETA ,		PHI,	SCALE,		LOOPING , 	VISIBLE, END  };
 	const std::string SSPNames[8] = {"position", 	"radius",	"theta",	"phi",	"scale",	"looping",	"visible", "invalid" };
 
 	void handle_input(std::string line);
@@ -50,7 +50,11 @@ private:
 	std::vector<std::string> split(const std::string& s, char delimiter);
 	void foo();
 
+	int export_final(std::string filepath);
+
 	void set_property_keyframe(std::string propertyName, std::string propertyValue);
 	void set_property_source(std::string propertyName, std::string propertyValue);
+	void set_property_composition(std::string propertyName, std::string propertyValue);
+
 };
 #endif
