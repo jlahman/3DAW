@@ -1,5 +1,7 @@
 # 3DAW
-
+To install with a gui, open the juice project file with projucer and build.
+to install without a gui, follow the building instructions using make.
+Dependencies are the same for both, except the no gui doesn't require juce
 ## Building:
 ### Dependencies:
 
@@ -12,6 +14,7 @@ In order to build this project, the following system libraries need to be instal
 	* [avutil]()
 	* [swresample]()
 * lib std::c++11
+* JUCE
 
 If you are using a linux distro, your software repository probably has these. On ubuntu 18.04 they can be installed by:
 `sudo apt install libmatio-dev libportaudio2 portaudio19-dev libavcodec-dev libavformat-dev libavutil-dev libavresample-dev`
