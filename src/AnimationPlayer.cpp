@@ -130,7 +130,6 @@ std::vector<SoundSource*> AnimationPlayer::getSources(){
 	return returnList;
 }
 
-
 SoundSource* AnimationPlayer::getSource(MasterSource  *s, double time_s){
 	SoundSource* instSource = NULL;
 

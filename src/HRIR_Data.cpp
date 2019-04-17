@@ -56,6 +56,9 @@ void HRIR_Data::loadHRIRFromMAT(){
     			int c = 25*y + x;
     			for(int i = 0; i < 200; i++){
     				hrir_l[x+1][y][i] = lData[c+ skip*i];
+					if(x == 0 && y == 8){
+						std::cout << x+1 << " " << y+1 << " \t" <<lData[c+ skip*i] << std::endl;
+					}
     				hrir_r[x+1][y][i] = rData[c+ skip*i];
 
     			}

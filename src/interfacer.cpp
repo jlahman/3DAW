@@ -1,43 +1,68 @@
-#include <stdio.h>
-#include <iostream>
-#include <vector>
-#include <cstring>
-#include <thread>
-#include <sstream>
-#include <fstream>
+#include "interfacer.h"
 
-#include"Track.h"
-#include"util.h"
-#include"AudioPlayer.h"
+Interfacer::Interfacer(){
+	//init members
+	std::cout << "started main program. \n" << std::endl;
+}
 
-#include"AnimationPlayer.h"
+Interfacer::~Interfacer(){
+	//delete members
+	std::cout << "Ending main program. \n" << std::endl;
+}
 
-std::vector<Track*> trackList;
-AudioPlayer ap = AudioPlayer();
-AnimationPlayer * anime = new AnimationPlayer("../data/CIPIC_hrtf_database/standard_hrir_database/subject_058/hrir_final.mat");
-const int framesPerAnimationStep = 256;
-int frameCount = 0;
-bool animePlay = false;
-bool done = false;
-bool pause = true;
-std::string selectedSource = "";
-std::string selectedComposition = "";
+int Interfacer::myMain()
+{
 
-int keyFrameSelected = 0;
+    PaError err;
 
-const int frameStop = 44100 * 50 ;
+    printf("PortAudio Test\n");
+	err = Pa_Initialize();
+	if( err != paNoError ) goto error;
 
-double ** audioOut = NULL;
-double ** overflow = NULL;
+	if (ap.open(Pa_GetDefaultOutputDevice()))
+	{
+		done = false;
+		std::thread(&Interfacer::foo, this).detach();
 
-enum SSPEnums 	{POSITION,	 	RADIUS, 	THETA ,		PHI,	SCALE,		LOOPING , 	VISIBLE, END  };
-std::string SSPNames[] = 	{"position", 	"radius",	"theta",	"phi",	"scale",	"looping",	"visible", "invalid" };
+		//file loading: from a project state?
+		/*std::filebuf fb;
+		if (fb.open ("test_input.txt",std::ios::in))
+		{
+			std::istream is(&fb);
+			while (is){
+				handle_input(&is);
+			}
+			fb.close();
+		}*/
 
-void set_property_keyframe(std::string propertyName, std::string propertyValue);
-void set_property_source(std::string propertyName, std::string propertyValue);
-void set_property_composition(std::string propertyName, std::string propertyValue);
+		while(!done){
+			//TODO: if no-gui, grab input from cin and send to input
+		}
+		ap.close();
+	}
 
-void foo(){
+	Pa_Terminate();
+	printf("Exiting Application... finished!\n");
+
+	for(int i = 0; i < trackList.size(); i++){
+		delete trackList[i];
+	}
+
+	//finally it's done
+	//what needed to long ago
+	delete anime;
+
+	return err;
+
+	error:
+		Pa_Terminate();
+		fprintf( stderr, "An error occured while using the portaudio stream\n" );
+		fprintf( stderr, "Error number: %d\n", err );
+		fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+		return err;
+}
+
+void Interfacer::foo(){
 	while(!done){
 		while(ap.getBufferMax() > ap.buffer_size() && frameCount < frameStop && animePlay){
 			int writeLength = (ap.getBufferMax() - ap.buffer_size())/2;
@@ -69,25 +94,12 @@ void foo(){
 					audioOutInterlaced[2*i] = audioOut[0][i];
 					audioOutInterlaced[2*i+ 1] = audioOut[1][i];
 				}
-				if(audioOutInterlaced[2*i] > 1.0){
-					audioOutInterlaced[2*i] = 1.0;
-				} else if(audioOutInterlaced[2*i] < -1.0){
-					audioOutInterlaced[2*i] = -1.0;
-				}
-				if(audioOutInterlaced[2*i+1] > 1.0){
-					audioOutInterlaced[2*i+1] = 1.0;
-				} else if(audioOutInterlaced[2*i+1] < -1.0){
-					audioOutInterlaced[2*i+1] = -1.0;
-				}
 			}
-
-			//theres still discontinuities when writeLength < 200
 			for(int i = writeLength; i < 199 && overflow != NULL; i++){
 				newOverflow[0][i-writeLength] += overflow[0][i];
 				newOverflow[1][i-writeLength] += overflow[1][i];
 
 			}
-
 			if(overflow != NULL){
 				delete[] overflow[0];
 				delete[] overflow[1];
@@ -112,20 +124,8 @@ void foo(){
 	}
 }
 
-void handle_input( std::istream *is);
-
-int main(int argc,  char * argv[])
-{
-	Interfacer * ifr = new Interfacer();
-	ifr->setInStream(&std::cin);
-	std::thread(&Interfacer::myMain, ifr).join();
-
-	return 0;
-
-}
-
 //from fluentcpp: https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
-std::vector<std::string> split(const std::string& s, char delimiter)
+std::vector<std::string> Interfacer::split(const std::string& s, char delimiter)
 {
    std::vector<std::string> tokens;
    std::string token;
@@ -136,17 +136,15 @@ std::vector<std::string> split(const std::string& s, char delimiter)
    }
    return tokens;
 };
-int export_final(std::string filename){
-	return 0;
-}
+
 //this is really wack
 //but deadlines demand of us
 //mediocre hacks
-void handle_input(std::istream *is){
-	std::string input;
-	std::getline(*is, input);
+void Interfacer::handle_input(std::string input){
 	char delim = ' ';
+
 	std::vector<std::string>line = split((const std::string) input, delim);
+
 	if(line.size() == 0) return;
  	//std::cout << std::string( 100, '\n' );
  	if(line[0]  == "play"){
@@ -173,18 +171,16 @@ void handle_input(std::istream *is){
 	//more elegant ways exist
 	//map strings to enum
 	else if(line[0] ==  "import"){
+	std::cout << line[1] << std::endl;
+	std::cout << line[2] << std::endl;
 		if(line[1] == "-file" || line[1] == "-f"){
 			Track * track = new Track(line[2]);
 			trackList.push_back(track);
 			std::cout << "Added file \"" << line[2] << "\" successfully." << std::endl;
 		}
 	} else if(line[0] ==  "export") {
-		if(export_final(line [1]) == 0){
-			std::cout << "Exporting Not Yet Supported, Stay Tuned." << std::endl;
-		}
-		else {
-			std::cout << "Error exporting to file." << std::endl;
-		}
+		//export
+		std::cout << "Exporting Not Yet Supported, Stay Tuned." << std::endl;
 	} else if(line[0] ==  "select") {
 		//select
 		if(line[1] == "-source" || line[1] == "-s"){
@@ -212,21 +208,6 @@ void handle_input(std::istream *is){
 				}
 			} else {
 				std::cout << "ERROR selecting keyframe: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
-			}
-		}
-		else if(line[1] == "-composition" || line[1] == "-c"){
-			//select compostion
-			if(line.size() == 3){
-				//anime->addSource(line[2], trackList.at(std::stoi(line[3], nullptr, 10)));
-				if(true){
-					selectedComposition = line[2];
-					//keyFrameSelected = 0;
-					std::cout << "Selectd composition \"" << selectedComposition << "\"" << std::endl;
-				} else {
-					std::cout << "Could not find \"" << line[2] << "\". Current selected composition: " << selectedComposition << std::endl;
-				}
-			} else {
-				std::cout << "ERROR selecting source: wrong number of arguments! expected: 3, got: " << line.size() << std::endl;
 			}
 		}
 	} else if (line[0] ==  "add"){
@@ -316,10 +297,6 @@ void handle_input(std::istream *is){
 					std::string propertyToEdit = line[3];
 					std::string propertyValNew = line[4];
 					set_property_keyframe(propertyToEdit, propertyValNew);
-				} else if(line[1] == "-composition" || line[1] == "-c"){
-					std::string propertyToEdit = line[3];
-					std::string propertyValNew = line[4];
-					set_property_composition(propertyToEdit, propertyValNew);
 				}
 			}
 		}
@@ -328,30 +305,7 @@ void handle_input(std::istream *is){
 	}
 };
 
-void set_property_composition(std::string propertyName, std::string propertyValue){
-	/*int p = -1;
-	for(int i = 0; i < END; i++){
-		if(propertyName == SSPNames[i]){
-			p = i;
-			break;
-		}
-	}*/
-	if(propertyName == "name"){
-		//anime->getSource(selectedSource)->source->setName(propertyValue);
-		selectedComposition = propertyValue;
-	} else if (propertyName == "start_time") {
-		try{
-			//double value = (double)std::stod(propertyValue);
-			//anime->getSource(selectedSource)->timeStart_s = value;
-		} catch (const std::invalid_argument& e){
-			//std::cout << "Error setting property: " << "start_time" << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
-		}
-	} else {
-		std::cout << "ERROR: Not A composition Property!" << std::endl;
-	}
-};
-
-void set_property_source(std::string propertyName, std::string propertyValue){
+void Interfacer::set_property_source(std::string propertyName, std::string propertyValue){
 	/*int p = -1;
 	for(int i = 0; i < END; i++){
 		if(propertyName == SSPNames[i]){
@@ -374,7 +328,7 @@ void set_property_source(std::string propertyName, std::string propertyValue){
 	}
 };
 
-void set_property_keyframe(std::string propertyName, std::string propertyValue){
+void Interfacer::set_property_keyframe(std::string propertyName, std::string propertyValue){
 	int p = -1;
 	for(int i = 0; i < END; i++){
 		if(propertyName == SSPNames[i]){
