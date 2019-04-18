@@ -16,6 +16,7 @@
 
 ## Editing Properties:
 * `set -c|-s|-k -property $PropertyName $PropertyValue` : sets the selected property to the given value if it exists and $propertyvalue is the right value
+* * `set -c -p hrir filepath`
 
 ## Component Destruction:
 * `remove -source $SourceName` : add the source with name $SourceName and audio track at index $trackNumber to the current composition
