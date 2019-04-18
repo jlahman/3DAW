@@ -50,20 +50,19 @@ void HRIR_Data::loadHRIRFromMAT(){
 		const double *rData = (const double*)(mvarRight->data);
 
 		if(mvarLeft && mvarRight){
-      for(int x = 0; x < 25; x++){
-        for(int y = 0; y < 50; y++){
+	      for(int x = 0; x < 25; x++){
+	        for(int y = 0; y < 50; y++){
     			int skip = 25*50;
     			int c = 25*y + x;
     			for(int i = 0; i < 200; i++){
     				hrir_l[x+1][y][i] = lData[c+ skip*i];
-					if(x == 0 && y == 8){
+					/*if(x == 0 && y == 8){
 						std::cout << x+1 << " " << y+1 << " \t" <<lData[c+ skip*i] << std::endl;
-					}
+					}*/
     				hrir_r[x+1][y][i] = rData[c+ skip*i];
-
-    			}
-        }
-      }
+	    		}
+	        }
+	      }
 		}
 		else{
 			fprintf(stdout, "ERROR: mat variable read error");
@@ -86,7 +85,7 @@ void HRIR_Data::genPIHRIR(){
 }
 
 void HRIR_Data::loadITDFromMAT(){
-	const char *filename = filepath.c_str();//"../data/CIPIC_hrtf_database/standard_hrir_database/subject_033/hrir_final.mat";
+	const char *filename = filepath.c_str();
 	mat_t *matfp = NULL;
 	matvar_t *mvarITD = NULL;
 

@@ -6,6 +6,8 @@
 #include"HRIR_Data.h"
 #include"KeyFrame.h"
 
+//mastersource might be better made as just soundsource
+//Need to plan out a new design with new knowledge
 struct MasterSource {
   MasterSource(SoundSource * src, double start, double end){
     this->source = src;

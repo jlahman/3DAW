@@ -1,7 +1,18 @@
 # 3DAW
+
+## Contributing: 
+To push changes, make a fork, branch your test code, make sure it works, submit a pull request to master.
+
+## Install method:
+There are two ways to build the projec:
+2. With JUCE as the gui
+2. As a CLI app with no GUI
+
 To install with a gui, open the juice project file with projucer and build.
 to install without a gui, follow the building instructions using make.
+
 Dependencies are the same for both, except the no gui doesn't require juce
+
 ## Building:
 ### Dependencies:
 
