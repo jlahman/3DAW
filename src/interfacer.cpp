@@ -442,6 +442,10 @@ void Interfacer::handle_input(std::string input)
             }
         }
     }
+    else if (line[0] == "hrir")
+    {
+        loadHRIR(line[1]);
+    }
     else
     {
         std::cout << "Input Not Recognized!" << std::endl;
