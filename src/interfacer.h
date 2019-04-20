@@ -9,52 +9,111 @@
 #include <sstream>
 #include <fstream>
 
-#include"Track.h"
-#include"util.h"
-#include"AudioPlayer.h"
+#include "Track.h"
+#include "util.h"
+#include "AudioPlayer.h"
 
-#include"AnimationPlayer.h"
+#include "AnimationPlayer.h"
 
+class Interfacer
+{
+  public:
+    Interfacer();
+    ~Interfacer();
 
-class Interfacer{
-public:
-	Interfacer();
-	~Interfacer();
+    enum SSPEnums
+    {
+        POSITION,
+        RADIUS,
+        THETA,
+        PHI,
+        SCALE,
+        LOOPING,
+        VISIBLE,
+        END
+    };
+    const std::string SSPNames[8] = {"position", "radius", "theta", "phi", "scale", "looping", "visible", "invalid"};
 
- 	enum SSPEnums					{POSITION,	 	RADIUS, 	THETA ,		PHI,	SCALE,		LOOPING , 	VISIBLE, END  };
-	const std::string SSPNames[8] = {"position", 	"radius",	"theta",	"phi",	"scale",	"looping",	"visible", "invalid" };
+    void handle_input(std::string line);
+    int myMain();
 
-	void handle_input(std::string line);
-	int myMain();
+  private:
+    AudioPlayer ap = AudioPlayer();
+    AnimationPlayer *anime;
+    std::vector<Track *> trackList;
 
-private:
-	AudioPlayer ap = AudioPlayer();
-	AnimationPlayer * anime = new AnimationPlayer("../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
-	std::vector<Track*> trackList;
+    const int frameStop = 44100 * 180;
+    const int framesPerAnimationStep = 1024;
 
-	const int frameStop = 44100 * 180 ;
-	const int framesPerAnimationStep = 1024;
+    int frameCount = 0;
+    bool animePlay = false;
+    bool done = false;
+    bool pause = true;
 
-	int frameCount = 0;
-	bool animePlay = false;
-	bool done = false;
-	bool pause = true;
+    std::string selectedSource = "";
+    std::string selectedComposition = "";
 
-	std::string selectedSource = "";
-	std::string selectedComposition = "";
+    int keyFrameSelected = 0;
+    double **audioOut = NULL;
+    double **overflow = NULL;
 
-	int keyFrameSelected = 0;
-	double ** audioOut = NULL;
-	double ** overflow = NULL;
+    std::vector<std::string> split(const std::string &s, char delimiter);
+    void foo();
 
-	std::vector<std::string> split(const std::string& s, char delimiter);
-	void foo();
+    int export_final(std::string filepath);
 
-	int export_final(std::string filepath);
+    void set_property_keyframe(std::string propertyName, std::string propertyValue);
+    void set_property_source(std::string propertyName, std::string propertyValue);
+    void set_property_composition(std::string propertyName, std::string propertyValue);
 
-	void set_property_keyframe(std::string propertyName, std::string propertyValue);
-	void set_property_source(std::string propertyName, std::string propertyValue);
-	void set_property_composition(std::string propertyName, std::string propertyValue);
-
-};
+    void Interfacer::loadHRIR();
+    void Interfacer::loadHRIR(std::string _subject);
+    
+    //45 entries
+    std::string subjects[] = {
+        "003",
+        "008",
+        "009",
+        "010",
+        "011",
+        "012",
+        "015",
+        "017",
+        "018",
+        "019",
+        "020",
+        "021",
+        "027",
+        "028",
+        "033",
+        "040",
+        "044",
+        "048",
+        "050",
+        "051",
+        "058",
+        "059",
+        "060",
+        "061",
+        "065",
+        "119",
+        "124",
+        "126",
+        "127",
+        "131",
+        "133",
+        "134",
+        "135",
+        "137",
+        "147",
+        "148",
+        "152",
+        "153",
+        "154",
+        "155",
+        "156",
+        "158",
+        "162",
+        "163",
+        "165"};
 #endif
