@@ -600,6 +600,9 @@ void Interfacer::set_property_composition(std::string propertyName, std::string 
         {
             //std::cout << "Error setting property: " << "start_time" << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
         }
+    } else if (propertyName == "hrir")
+    {
+        loadHRIR(propertyValue);
     }
     else
     {
@@ -614,8 +617,7 @@ int Interfacer::export_final(std::string filename)
 
 //defaults to loading subject 40
 void Interfacer::loadHRIR() {
-    delete anime;
-    anime = new AnimationPlayer("../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
+    anime->reInitHRIR("../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
 }
 
 //attempts to load the selected subject, defaults to 40 if not found
@@ -629,9 +631,6 @@ void Interfacer::loadHRIR(std::string _subject) {
     else
         filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat";
 
-    delete anime;
-    anime = new AnimationPlayer(filepath);
+    anime->reInitHRIR(filepath);
     delete s;
 }
-
-

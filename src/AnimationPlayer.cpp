@@ -9,8 +9,8 @@ AnimationPlayer::AnimationPlayer(std::string filepath){
 	hrirLR = new double[200];
 }
 
-void reInitHRIR(std::string filepath){
-    if(hrir != null)
+void AnimationPlayer::reInitHRIR(std::string filepath){
+    if(hrir != NULL)
         delete hrir;
     hrir = new HRIR_Data(filepath);
 }
