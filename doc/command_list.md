@@ -9,6 +9,9 @@
 * `select -source $SourceName` : selects the source with $sourcename in the selected composition to edit
 * `select -keyframe $keyframe_number` : selects the source with $sourcename in the selected composition to edit
 
+## HRIR Selection
+* `hrir $HRIR` : load the selected hrir by 3-digit subject number
+
 ## Component Creation:
 * `add -source $SourceName $TrackNumber` : add the source with name $SourceName and audio track at index $trackNumber to the current composition
 * `add -keyframe $Time_s` : add a keyframe with default properties to the current source
