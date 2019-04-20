@@ -2,7 +2,7 @@
 
 <JUCERPROJECT name="daw_gui" companyName="JUCE" version="1.0.0" userNotes="Explores slider values."
               companyWebsite="http://juce.com" defines="" projectType="guiapp"
-              id="OyWXru" jucerVersion="5.2.1" cppLanguageStandard="11">
+              id="OyWXru" jucerVersion="5.4.1" cppLanguageStandard="11">
   <MAINGROUP id="eXZAZj" name="daw_gui">
     <GROUP id="{BCAEDCCF-EE10-CEAA-1329-055D5D614673}" name="Source">
       <FILE id="i6A8XI" name="AnimationPlayer.cpp" compile="1" resource="0"
