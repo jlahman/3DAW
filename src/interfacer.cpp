@@ -3,7 +3,7 @@
 Interfacer::Interfacer()
 {
     //init members
-	anime = new AnimationPlayer("../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
+	anime = new AnimationPlayer("../../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
     loadHRIR();
     std::cout << "started main program. \n" << std::endl;
 }
@@ -616,7 +616,7 @@ int Interfacer::export_final(std::string filename)
 
 //defaults to loading subject 40
 void Interfacer::loadHRIR() {
-    anime->reInitHRIR("../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
+    anime->reInitHRIR("../../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
 }
 
 //attempts to load the selected subject, defaults to 40 if not found
@@ -629,9 +629,9 @@ void Interfacer::loadHRIR(std::string _subject) {
 		}
 	}
     if(i != 45)
-        filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_"+subjects[i]+"/hrir_final.mat";
+        filepath = "../../../data/CIPIC_hrtf_database/standard_hrir_database/subject_"+subjects[i]+"/hrir_final.mat";
     else
-        filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat";
+        filepath = "../../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat";
 
     anime->reInitHRIR(filepath);
 }
