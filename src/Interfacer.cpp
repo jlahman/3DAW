@@ -3,9 +3,10 @@
 Interfacer::Interfacer()
 {
     //init members
-	anime = new AnimationPlayer("../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
     loadHRIR();
-    std::cout << "started main program. \n" << std::endl;
+
+    std::cout << "started main program. \n"
+              << std::endl;
 }
 
 Interfacer::~Interfacer()
@@ -171,7 +172,7 @@ std::vector<std::string> Interfacer::split(const std::string &s, char delimiter)
         tokens.push_back(token);
     }
     return tokens;
-};
+}
 
 //this is really wack
 //but deadlines demand of us
@@ -441,10 +442,6 @@ void Interfacer::handle_input(std::string input)
             }
         }
     }
-    else if (line[0] == "hrir")
-    {
-        loadHRIR(line[1]);
-    }
     else
     {
         std::cout << "Input Not Recognized!" << std::endl;
@@ -572,7 +569,7 @@ void Interfacer::set_property_keyframe(std::string propertyName, std::string pro
     default:
         std::cout << "ERROR: Not A Key Frame Property!" << std::endl;
     }
-}
+};
 
 void Interfacer::set_property_composition(std::string propertyName, std::string propertyValue)
 {
@@ -599,7 +596,8 @@ void Interfacer::set_property_composition(std::string propertyName, std::string 
         {
             //std::cout << "Error setting property: " << "start_time" << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
         }
-    } else if (propertyName == "hrir")
+    }
+    else if (propertyName == "hrir")
     {
         loadHRIR(propertyValue);
     }
@@ -607,7 +605,7 @@ void Interfacer::set_property_composition(std::string propertyName, std::string 
     {
         std::cout << "ERROR: Not A composition Property!" << std::endl;
     }
-}
+};
 
 int Interfacer::export_final(std::string filename)
 {
@@ -622,16 +620,14 @@ void Interfacer::loadHRIR() {
 //attempts to load the selected subject, defaults to 40 if not found
 void Interfacer::loadHRIR(std::string _subject) {
     std::string filepath;
-	int i = 0;
-	for(i = 0; i < 45; i++){
-		if(_subject == subjects[i]){
-			break;
-		}
-	}
-    if(i != 45)
-        filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_"+subjects[i]+"/hrir_final.mat";
+    std::string *s;
+
+    s = std::find(subjects, subjects + 45, _subject);
+    if(s != subjects + 45)
+        filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_"+subject+"/hrir_final.mat";
     else
         filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat";
 
     anime->reInitHRIR(filepath);
+    delete s;
 }

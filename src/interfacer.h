@@ -66,11 +66,11 @@ class Interfacer
     void set_property_source(std::string propertyName, std::string propertyValue);
     void set_property_composition(std::string propertyName, std::string propertyValue);
 
-    void Interfacer::loadHRIR();
-    void Interfacer::loadHRIR(std::string _subject);
-    
+    void loadHRIR();
+    void loadHRIR(std::string _subject);
+
     //45 entries
-    std::string subjects[] = {
+    std::string subjects[45] = {
         "003",
         "008",
         "009",
@@ -116,4 +116,5 @@ class Interfacer
         "162",
         "163",
         "165"};
+};
 #endif
