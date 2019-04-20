@@ -32,23 +32,25 @@ public:
     {
         addAndMakeVisible (azimuthSlider);
         azimuthSlider.setRange (-180, 180);
+        azimuthSlider.setSliderStyle (Slider::Rotary);
         azimuthSlider.setTextValueSuffix (" Degrees");
         azimuthSlider.addListener (this);
-	//	azimuthSlider.setNumDecimalPlacesToDisplay(2);
+		azimuthSlider.setNumDecimalPlacesToDisplay(2);
 
         addAndMakeVisible (azimuthLabel);
         azimuthLabel.setText ("Azimuth", dontSendNotification);
-        azimuthLabel.attachToComponent (&azimuthSlider, true);
+        azimuthLabel.attachToComponent (&azimuthSlider, false);
 
         addAndMakeVisible (elevationSlider);
-		elevationSlider.setRange(-90, 90);
+		elevationSlider.setRange(-45, 90);
+		elevationSlider.setSliderStyle (Slider::LinearVertical);
         elevationSlider.setTextValueSuffix (" Degrees");
         elevationSlider.addListener (this);
-		//elevationSlider.setNumDecimalPlacesToDisplay(2);
+		elevationSlider.setNumDecimalPlacesToDisplay(2);
 
         addAndMakeVisible (elevationLabel);
         elevationLabel.setText ("Elevation", dontSendNotification);
-        elevationLabel.attachToComponent (&elevationSlider, true);
+        elevationLabel.attachToComponent (&elevationSlider, false);
 
         azimuthSlider.setValue (0);
 		elevationSlider.setValue(0);
@@ -70,7 +72,7 @@ public:
 		std::thread(&Interfacer::myMain, interfacer).detach();
 
 
-        setSize (600, 150);
+        setSize (600, 300);
     }
 
     ~MainContentComponent() {
@@ -87,6 +89,19 @@ public:
         openButton.setBounds (sliderLeft, 80, getWidth() - sliderLeft - 10, 20);
         exportButton.setBounds (sliderLeft, 110, getWidth() - sliderLeft - 10, 20);
         playButton.setBounds (sliderLeft, 140, getWidth() - sliderLeft - 10, 20);
+
+        auto border = 4;
+        auto area = getLocalBounds();
+        auto dialArea = area.removeFromTop (area.getHeight() / 2);
+        azimuthSlider.setBounds(dialArea.removefromLeft (dialArea.getWidth() / 1.5).reduced (border));
+        elevationSlider.setBounds (dialArea.reduced (border));
+
+        auto buttonHeight = 30;
+
+        auto outputArea = area.removefromRight ( area.getwidth()/2);
+        playButton.setBounds (outputArea.removeFromTop (outputArea.getHeight() / 2).reduced (border));
+        exportButton.setBounds (outputArea.reduced (border));
+        openButton.setBounds (area.reduced (border));
 
     }
 
