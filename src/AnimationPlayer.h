@@ -24,6 +24,7 @@ class AnimationPlayer {
 
   public:
     AnimationPlayer(std::string filepath);
+    void reInitHRIR(std::string filepath)
     void addSource(std::string sourceName, Track * track);
 	void removeSource(std::string sourceNam);
 	bool hasSource(std::string sourceName);

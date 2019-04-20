@@ -9,6 +9,12 @@ AnimationPlayer::AnimationPlayer(std::string filepath){
 	hrirLR = new double[200];
 }
 
+void reInitHRIR(std::string filepath){
+    if(hrir != null)
+        delete hrir;
+    hrir = new HRIR_Data(filepath);
+}
+
 bool AnimationPlayer::hasSource(std::string sourceName){
 	for(std::vector<MasterSource*>::iterator source = sourceList.begin(); source != sourceList.end(); source++){
 		if((*source)->source->getName().compare(sourceName) == 0){
