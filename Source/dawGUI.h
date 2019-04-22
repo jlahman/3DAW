@@ -70,6 +70,62 @@ public:
         exportButton.setColour (TextButton::buttonColourId, Colours::green);
         exportButton.setEnabled (false);
 
+		addAndMakeVisible(styleMenu);
+		styleMenu.addItem("003", 1);
+		styleMenu.addItem("008", 2);
+		styleMenu.addItem("009", 3);
+		styleMenu.addItem("010", 4);
+		styleMenu.addItem("011", 5);
+		styleMenu.addItem("012", 6);
+		styleMenu.addItem("015", 7);
+		styleMenu.addItem("017", 8);
+		styleMenu.addItem("018", 9);
+		styleMenu.addItem("019",10);
+		styleMenu.addItem("020", 11);
+		styleMenu.addItem("021", 12);
+		styleMenu.addItem("027", 13);
+		styleMenu.addItem("028", 14);
+		styleMenu.addItem("033", 15);
+		styleMenu.addItem("040", 16);
+		styleMenu.addItem("044", 17);
+		styleMenu.addItem("048", 18);
+		styleMenu.addItem("050", 19);
+		styleMenu.addItem("051", 20);
+		styleMenu.addItem("058", 21);
+		styleMenu.addItem("059", 22);
+		styleMenu.addItem("060", 23);
+		styleMenu.addItem("061", 24);
+		styleMenu.addItem("065", 25);
+		styleMenu.addItem("119", 26);
+		styleMenu.addItem("124", 27);
+		styleMenu.addItem("126", 28);
+		styleMenu.addItem("127", 29);
+		styleMenu.addItem("131", 30);
+		styleMenu.addItem("133", 31);
+		styleMenu.addItem("134", 32);
+		styleMenu.addItem("135", 33);
+		styleMenu.addItem("137", 34);
+		styleMenu.addItem("147", 35);
+		styleMenu.addItem("148", 36);
+		styleMenu.addItem("152", 37);
+		styleMenu.addItem("153", 38);
+		styleMenu.addItem("154", 39);
+		styleMenu.addItem("155", 40);
+		styleMenu.addItem("156", 41);
+		styleMenu.addItem("158", 42);
+		styleMenu.addItem("162", 43);
+		styleMenu.addItem("163", 44);
+		styleMenu.addItem("165", 45);
+
+		styleMenu.onChange = [this] { styleMenuChanged(); };
+		styleMenu.setSelectedId("1");
+			
+	}
+
+		styleMenu.onChange = [this] { styleMenuChanged(); };
+		styleMenu.setSelectedId(1);
+
+
         std::thread(&Interfacer::myMain, interfacer).detach();
 
         setSize (600, 300);
@@ -101,7 +157,8 @@ public:
         auto outputArea = area.removeFromRight ( area.getWidth()/2);
         playButton.setBounds (outputArea.removeFromTop (outputArea.getHeight() / 2).reduced (border));
         exportButton.setBounds (outputArea.reduced (border));
-        openButton.setBounds (area.reduced (border));
+        openButton.setBounds (area.removeFromTop(area.getHeight() / 2).reduced (border));
+		styleMenu.setBounds(area.reduced(border));
 
     }
 
@@ -202,6 +259,13 @@ public:
 
         */
     }
+	void styleMenuChanged()
+	{
+		string hrir = styleMenu.getText();
+		interfacer->loadHRIR(hrir);
+	}
+
+
     	juce::File targetFile;
 
 
@@ -217,6 +281,7 @@ private:
     TextButton exportButton;
 
     TextButton playButton;
+	ComboBox styleMenu;
 
 
     //==============================================================================
