@@ -35,8 +35,8 @@ public:
         azimuthSlider.setSliderStyle (Slider::Rotary);
         azimuthSlider.setTextValueSuffix (" Degrees");
         azimuthSlider.addListener (this);
-    		azimuthSlider.setNumDecimalPlacesToDisplay(2);
-        azimuthSlider.setRotaryParameters(0, MathConstants<float>::twoPi, false);
+    	//	azimuthSlider.numDecimalPlaces = 2;
+        azimuthSlider.setRotaryParameters(MathConstants<float>::twoPi/2, MathConstants<float>::twoPi + MathConstants<float>::twoPi/2, false);
 
         addAndMakeVisible (azimuthLabel);
         azimuthLabel.setText ("Azimuth", dontSendNotification);
@@ -47,12 +47,12 @@ public:
 		    elevationSlider.setSliderStyle (Slider::LinearVertical);
         elevationSlider.setTextValueSuffix (" Degrees");
         elevationSlider.addListener (this);
-        elevationSlider.setNumDecimalPlacesToDisplay(2);
+        //elevationSlider.numDecimalPlaces = 2;
 
         addAndMakeVisible (elevationLabel);
         elevationLabel.setText ("Elevation", dontSendNotification);
         elevationLabel.attachToComponent (&elevationSlider, false);
-        
+
         azimuthSlider.setValue (0);
         elevationSlider.setValue(0);
 
@@ -118,12 +118,8 @@ public:
 		styleMenu.addItem("165", 45);
 
 		styleMenu.onChange = [this] { styleMenuChanged(); };
-		styleMenu.setSelectedId("1");
-			
-	}
-
-		styleMenu.onChange = [this] { styleMenuChanged(); };
 		styleMenu.setSelectedId(1);
+
 
 
         std::thread(&Interfacer::myMain, interfacer).detach();
@@ -204,7 +200,7 @@ public:
 
     void openButtonClicked()
     {
-        FileChooser chooser ("Select a Wave file to spatialize...",{},"*.wav");
+        FileChooser chooser ("Select a Wave file to spatialize...",{},"*.*");
         if (chooser.browseForFileToOpen())
         {
             targetFile = chooser.getResult();
@@ -261,8 +257,9 @@ public:
     }
 	void styleMenuChanged()
 	{
-		string hrir = styleMenu.getText();
-		interfacer->loadHRIR(hrir);
+		std::string hrir = styleMenu.getText().toStdString();
+		std::string cmd = "set -c -p hrir " + hrir;
+		interfacer->handle_input(cmd);
 	}
 
 

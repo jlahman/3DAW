@@ -74,7 +74,7 @@ void Interfacer::foo()
 {
     while (!done)
     {
-        while (ap.getBufferMax() > ap.buffer_size() && frameCount < frameStop && animePlay)
+        while (ap.getBufferMax() > ap.buffer_size() &&  animePlay)
         {
             int writeLength = (ap.getBufferMax() - ap.buffer_size()) / 2;
 
@@ -241,6 +241,8 @@ void Interfacer::handle_input(std::string input)
     }
     else if (line[0] == "select")
     {
+		if(anime->getSources().size() < 1)
+			return;
         //select
         if (line[1] == "-source" || line[1] == "-s")
         {
@@ -308,6 +310,7 @@ void Interfacer::handle_input(std::string input)
     }
     else if (line[0] == "add")
     {
+
         if (line[1] == "-source" || line[1] == "-s")
         {
             if (line.size() == 4)
@@ -321,13 +324,16 @@ void Interfacer::handle_input(std::string input)
             }
         }
         else if (line[1] == "-keyframe" || line[1] == "-k")
-        {
+        {if(anime->getSources().size() < 1)
+			return;
             anime->addKeyFrame(selectedSource, std::stod(line[2]), new SoundSourceProperties(new Polar3D(1.0, 0.0, 0.0), true, true));
             std::cout << "Added new KeyFrame at time (ms) \"" << line[2] << "\" successfully." << std::endl;
         }
     }
     else if (line[0] == "list")
     {
+		if(anime->getSources().size() < 1)
+			return;
         if (line[1] == "-source" || line[1] == "-s")
         {
             std::cout << "\nSources in Composition: " << time << std::endl;
@@ -415,19 +421,22 @@ void Interfacer::handle_input(std::string input)
     }
     else if (line[0] == "set")
     {
+
         if (line.size() > 4)
         {
             if (line[2] == "-property" || line[2] == "-p")
             {
                 if (line[1] == "-source" || line[1] == "-s")
-                {
+                {if(anime->getSources().size() < 1)
+					return;
                     //TODO: set source property
                     std::string propertyToEdit = line[3];
                     std::string propertyValNew = line[4];
                     set_property_source(propertyToEdit, propertyValNew);
                 }
                 else if (line[1] == "-keyframe" || line[1] == "-k")
-                {
+                {if(anime->getSources().size() < 1)
+					return;
                     std::string propertyToEdit = line[3];
                     std::string propertyValNew = line[4];
                     set_property_keyframe(propertyToEdit, propertyValNew);
@@ -601,6 +610,7 @@ void Interfacer::set_property_composition(std::string propertyName, std::string 
         }
     } else if (propertyName == "hrir")
     {
+		std::cout << propertyValue << std::endl;
         loadHRIR(propertyValue);
     }
     else
@@ -620,11 +630,11 @@ void Interfacer::loadHRIR() {
 }
 
 //attempts to load the selected subject, defaults to 40 if not found
-void Interfacer::loadHRIR(std::string _subject) {
+void Interfacer::loadHRIR(std::string subject) {
     std::string filepath;
 	int i = 0;
 	for(i = 0; i < 45; i++){
-		if(_subject == subjects[i]){
+		if(subject == subjects[i]){
 			break;
 		}
 	}
@@ -633,5 +643,6 @@ void Interfacer::loadHRIR(std::string _subject) {
     else
         filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat";
 
+		printf( "%s\n", filepath.c_str());
     anime->reInitHRIR(filepath);
 }

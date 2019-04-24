@@ -12,6 +12,7 @@ AnimationPlayer::AnimationPlayer(std::string filepath){
 void AnimationPlayer::reInitHRIR(std::string filepath){
     if(hrir != NULL)
         delete hrir;
+	//printf("%s\n", filepath );
     hrir = new HRIR_Data(filepath);
 }
 
