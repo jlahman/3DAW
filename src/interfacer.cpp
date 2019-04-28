@@ -1,4 +1,5 @@
 #include "interfacer.h"
+#include <unistd.h>
 
 Interfacer::Interfacer()
 {
@@ -43,7 +44,10 @@ int Interfacer::myMain()
 
         while (!done)
         {
-            //TODO: if no-gui, grab input from cin and send to input
+			char cwd[10000];
+			if (getcwd(cwd, sizeof(cwd)) != NULL){}
+				//printf("Current working dir: %s\n", cwd);
+			           //TODO: if no-gui, grab input from cin and send to input
         }
         ap.close();
     }
@@ -53,6 +57,7 @@ int Interfacer::myMain()
 
     for (int i = 0; i < trackList.size(); i++)
     {
+		//delete[] trackList[i]->data;
         delete trackList[i];
     }
 
@@ -159,6 +164,29 @@ void Interfacer::foo()
         }
     }
 }
+
+bool Interfacer::hasTrack(std::string name){
+	for(int i = 0; i < trackList.size(); i++){
+		if(trackList[i]->filepath == name){
+			return true;
+		}
+	}
+	return false;
+}
+
+int Interfacer::getTrackIndex(std::string name){
+	for(int i = 0; i < trackList.size(); i++){
+		if(trackList[i]->filepath == name){
+			return i;
+		}
+	}
+	return -1;
+}
+
+int Interfacer::getTrackSize(){
+	return trackList.size();
+}
+
 
 //from fluentcpp: https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
 std::vector<std::string> Interfacer::split(const std::string &s, char delimiter)
@@ -471,6 +499,7 @@ void Interfacer::set_property_source(std::string propertyName, std::string prope
 	}*/
     if (propertyName == "name")
     {
+		printf("Set name to : %s\n", propertyValue.c_str());
         anime->getSource(selectedSource)->source->setName(propertyValue);
         selectedSource = propertyValue;
     }
@@ -487,7 +516,12 @@ void Interfacer::set_property_source(std::string propertyName, std::string prope
                       << "start_time"
                       << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
         }
-    }
+    } else if (propertyName == "visible"){
+		//technically treats values other than true as false
+		bool bval = (propertyValue == "T" || propertyValue == "t" || propertyValue == "true" || propertyValue == "TRUE" || propertyValue == "True");
+		anime->getSource(selectedSource)->isVisible = bval;
+		std::cout << bval << " " << propertyValue << " " <<anime->getSource(selectedSource)->isVisible<<std::endl;
+	}
     else
     {
         std::cout << "ERROR: Not A source Property!" << std::endl;

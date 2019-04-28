@@ -140,7 +140,7 @@ std::vector<SoundSource*> AnimationPlayer::getSources(){
 SoundSource* AnimationPlayer::getSource(MasterSource  *s, double time_s){
 	SoundSource* instSource = NULL;
 
-	if(s->timeStart_s > time_s){
+	if(s->timeStart_s > time_s || s->isVisible == false){
 		return NULL;
 	} else{
 		time_s -= s->timeStart_s;

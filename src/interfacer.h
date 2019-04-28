@@ -35,6 +35,12 @@ class Interfacer
     const std::string SSPNames[8] = {"position", "radius", "theta", "phi", "scale", "looping", "visible", "invalid"};
 
     void handle_input(std::string line);
+	bool hasTrack(std::string name);
+	int getTrackIndex(std::string name);
+	int getTrackSize();
+	bool pause = true;
+
+
     int myMain();
 
   private:
@@ -48,7 +54,6 @@ class Interfacer
     int frameCount = 0;
     bool animePlay = false;
     bool done = false;
-    bool pause = true;
 
     std::string selectedSource = "";
     std::string selectedComposition = "";
