@@ -45,6 +45,8 @@ class AnimationPlayer {
 
     int setStartTime(std::string sourceName, double time_s);
 
+	double time;
+
 
 
   private:

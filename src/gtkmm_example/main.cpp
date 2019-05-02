@@ -3,9 +3,11 @@
 #include <string>
 #include <sstream>
 #include <thread>
+//#include <X11>
 
 
 #include"../interfacer.h"
+#include"clock.h"
 
 
 std::vector<std::string> split(const std::string &s, char delimiter)
@@ -23,7 +25,16 @@ std::vector<std::string> split(const std::string &s, char delimiter)
 Glib::RefPtr<Gtk::Builder> refBuilder;// = Gtk::Builder::create();
 Gtk::Window* window = nullptr;
 Gtk::Button * newSourceButton = nullptr;
+Gtk::Button * newKeyButton = nullptr;
+
 Gtk::ComboBoxText * sourceListComboBoxText = nullptr;
+Gtk::ComboBoxText * keyListComboBoxText = nullptr;
+
+Gtk::Viewport * drawVP = nullptr;
+
+
+//AnimationPlayer but like not really
+Gtk::Button * restartButton = nullptr;
 
 //Popup Source Window
 Gtk::Window* popNewSourceWindow = nullptr;
@@ -38,6 +49,19 @@ Gtk::Entry *  popKeyRadiusEntry = nullptr;
 Gtk::Entry *  popKeyScaleEntry = nullptr;
 Gtk::Switch *  popKeyLoopingSwitch = nullptr;
 Gtk::Switch *  popKeyVisibleSwitch = nullptr;
+
+//Popup Key Window
+Gtk::Window* popAddKeyWindow = nullptr;
+Gtk::Button * popAddKeyAddButton = nullptr;
+Gtk::Button * popAddKeyCancelButton = nullptr;
+Gtk::Entry * popAddKeyTimeEntry = nullptr;
+Gtk::Entry * popAddKeyAzimuthEntry = nullptr;
+Gtk::Entry * popAddKeyElevationEntry = nullptr;
+Gtk::Entry *  popAddKeyRadiusEntry = nullptr;
+Gtk::Entry *  popAddKeyScaleEntry = nullptr;
+Gtk::Switch *  popAddKeyLoopingSwitch = nullptr;
+Gtk::Switch *  popAddKeyVisibleSwitch = nullptr;
+
 
 
 //SoundSourceProperties
@@ -64,6 +88,10 @@ static void close_pop_source(){
 	popNewSourceWindow->hide();
 }
 
+static void close_pop_key(){
+	//reset values/makesure resetting values doesn't change source file
+	popAddKeyWindow->hide();
+}
 static void on_file_selected(){
 
 	std::string filepath =  fcb->get_filename();
@@ -94,6 +122,12 @@ static void on_file_selected(){
 
 }
 
+
+static void on_restart_clicked(){
+	std::string cmd = "restart";
+	interfacer->handle_input(cmd);
+}
+
 static void on_new_source_clicked(){
 	//int * p;
 	//*p =0;
@@ -102,6 +136,16 @@ static void on_new_source_clicked(){
 	//app->run(*popNewSourceWindow);
 	popNewSourceWindow->show();
 }
+
+static void on_add_key_clicked(){
+	//int * p;
+	//*p =0;
+	//char ** cv = {{}};
+	//auto app = Gtk::Application::create(*p, cv, "org.gtkmm.example2");
+	//app->run(*popNewSourceWindow);
+	popAddKeyWindow->show();
+}
+
 
 static void on_pop_source_add_clicked(){
 	//set properties to default if no value
@@ -176,11 +220,94 @@ static void on_pop_source_add_clicked(){
 	sourceListComboBoxText->append(popSourceNameEntry->get_text(), popSourceNameEntry->get_text());
 }
 
+static void on_pop_key_add_clicked(){
+	//set properties to default if no value
+	std::string cmd;
+
+	//add new keyframe
+	cmd = "select -s " + sourceListComboBoxText->get_active_text();
+	interfacer->handle_input(cmd);
+
+	//add keyframe
+	cmd = "add -k " + popAddKeyTimeEntry->get_text().raw();
+	interfacer->handle_input(cmd);
+
+	//select keyframe n
+	cmd = "select -k " + std::to_string(interfacer->anime->getSource(interfacer->selectedSource)->keyFrameList.size() -1);
+	interfacer->handle_input(cmd);
+
+	//set positional properties
+	cmd = "set -k -p theta " + popAddKeyAzimuthEntry->get_text().raw();
+	interfacer->handle_input(cmd);
+
+	cmd = "set -k -p phi " + popAddKeyElevationEntry->get_text().raw();
+	interfacer->handle_input(cmd);
+
+	//cmd = "set -k -p radius " + popAddKeyRaduesEntry->get_text().raw();
+	//interfacer->handle_input(cmd);
+
+	//set looping and visibility
+	std::string state;
+	//sourceMuteSwitch->set_state(bstate	);
+	if(popAddKeyLoopingSwitch->get_state() == true)
+		state = "true";
+	else
+		state = "false";
+	cmd = "set -k -p looping " + state;
+	//std::cout << cmd << std::endl;
+	interfacer->handle_input(cmd);
+
+	if(popAddKeyVisibleSwitch->get_state() == true)
+		state = "true";
+	else
+		state = "false";
+	cmd = "set -k -p visible " + state;
+	//std::cout << cmd << std::endl;
+	interfacer->handle_input(cmd);
+
+	close_pop_key();
+
+	//reset_pop_window_values();
+	Glib::ustring id = std::to_string(interfacer->anime->getSource(interfacer->selectedSource)->keyFrameList.size() -1);
+
+	keyListComboBoxText->append(id, id);
+}
+static void on_keylist_changed(){
+	std::string cmd;
+	cmd = "select -k " + keyListComboBoxText->get_active_text().raw();
+	interfacer->handle_input(cmd);
+	//update source and keyframe properties panels
+	keyAzimuthEntry->set_text(std::to_string(interfacer->anime->getSource(sourceListComboBoxText->get_active_text().raw())->keyFrameList[(int)std::stod( keyListComboBoxText->get_active_text().raw())]->properties->position->theta));
+	keyElevationEntry->set_text(std::to_string(interfacer->anime->getSource(sourceListComboBoxText->get_active_text().raw())->keyFrameList[(int)std::stod( keyListComboBoxText->get_active_text().raw())]->properties->position->phi));
+	keyRadiusEntry->set_text(std::to_string(interfacer->anime->getSource(sourceListComboBoxText->get_active_text().raw())->keyFrameList[(int)std::stod( keyListComboBoxText->get_active_text().raw())]->properties->position->radius));
+
+	keyTimeEntry->set_text(std::to_string(interfacer->anime->getSource(sourceListComboBoxText->get_active_text().raw())->keyFrameList[(int)std::stod( keyListComboBoxText->get_active_text().raw())]->time_s));
+}
+
 static void on_sourcelist_changed(){
 	std::string cmd;
 	cmd = "select -s " + sourceListComboBoxText->get_active_text().raw();
 	interfacer->handle_input(cmd);
 	//update source and keyframe properties panels
+	sourceNameEntry->set_text(sourceListComboBoxText->get_active_text());
+	sourceStartTimeEntry->set_text(std::to_string(interfacer->anime->getSource(sourceListComboBoxText->get_active_text().raw())->timeStart_s));
+	sourceMuteSwitch->set_state(!interfacer->anime->getSource(sourceListComboBoxText->get_active_text().raw())->isVisible);
+	fcb->set_filename(interfacer->anime->getSource(sourceListComboBoxText->get_active_text().raw())->source->getTrackFilepath());
+
+	cmd = "select -k 0";
+	interfacer->handle_input(cmd);
+
+	Glib::ustring temp = std::to_string(0);
+
+	keyListComboBoxText->set_active_id(temp);
+
+	keyListComboBoxText->remove_all();
+	int size = interfacer->anime->getSource(sourceListComboBoxText->get_active_text().raw())->keyFrameList.size();
+	for(int i = 0; i < size; i++){
+		Glib::ustring temp = std::to_string(i);
+		keyListComboBoxText->append(temp, temp);
+	}
+
 }
 
 static void on_play_toggled(){
@@ -196,9 +323,9 @@ static void on_play_toggled(){
 
 static void on_source_name_changed(){
 	std::string cmd;
-	sourceListComboBoxText->set_active_text( sourceNameEntry->get_text());
 	cmd = "set -s -p name " + sourceNameEntry->get_text().raw();
 	interfacer->handle_input(cmd);
+	//sourceListComboBoxText->set_active_text(sourceNameEntry->get_text());
 }
 
 static void on_source_time_changed(){
@@ -279,11 +406,9 @@ static void on_key_visible_set(){
 
 
 
-
-
-
 int main (int argc, char **argv)
 {
+	//XInitThreads();
 	auto app = Gtk::Application::create(argc, argv, "org.gtkmm.example");
 
 	//Load the GtkBuilder file and instantiate its widgets:
@@ -313,20 +438,37 @@ int main (int argc, char **argv)
 	newSourceButton->signal_pressed().connect(sigc::ptr_fun(on_new_source_clicked));
 
 	refBuilder->get_widget("window", window);
-
 	refBuilder->get_widget("PopNewSourceWindow", popNewSourceWindow);
+	refBuilder->get_widget("PopAddKeyWindow", popAddKeyWindow);
+
+	refBuilder->get_widget("NewKeyButton", newKeyButton);
+	newKeyButton->signal_pressed().connect(sigc::ptr_fun(on_add_key_clicked));
+	Clock c;
+	c.interfacer = interfacer;
+
+	refBuilder->get_widget("DrawViewport", drawVP);
+	drawVP->add(c);
+	c.show();
+
 
 	refBuilder->get_widget("SourceListComboBoxText", sourceListComboBoxText);
 	sourceListComboBoxText->signal_changed().connect(sigc::ptr_fun(on_sourcelist_changed));
+
+	refBuilder->get_widget("KeyListComboBoxText", keyListComboBoxText);
+	keyListComboBoxText->signal_changed().connect(sigc::ptr_fun(on_keylist_changed));
+
+	//animation player but not really
+	Gtk::ToggleButton * tb = nullptr;
+	refBuilder->get_widget("ToggleButton", tb);
+	tb->signal_toggled().connect(sigc::ptr_fun(on_play_toggled));
+
+	refBuilder->get_widget("RestartButton", restartButton);
+	restartButton->signal_clicked().connect(sigc::ptr_fun(on_restart_clicked));
 
 
 	/*------------Source Properties------------------*/
 	refBuilder->get_widget("filechooserbutton", fcb);
 	fcb->signal_file_set().connect(sigc::ptr_fun(on_file_selected));
-
-	Gtk::ToggleButton * tb = nullptr;
-	refBuilder->get_widget("ToggleButton", tb);
-	tb->signal_toggled().connect(sigc::ptr_fun(on_play_toggled));
 
 	refBuilder->get_widget("SourceNameEntry", sourceNameEntry);
 	sourceNameEntry->signal_changed().connect(sigc::ptr_fun(on_source_name_changed));
@@ -375,6 +517,20 @@ int main (int argc, char **argv)
 	refBuilder->get_widget("PopKeyRadiusEntry", popKeyRadiusEntry);
 	refBuilder->get_widget("PopKeyLoopingSwitch", popKeyLoopingSwitch);
 	refBuilder->get_widget("PopKeyVisibleSwitch", popKeyVisibleSwitch);
+
+	/*--------------PopUp KeyFrame Window-----------------------*/
+	refBuilder->get_widget("PopAddKeyAddButton", popAddKeyAddButton);
+	popAddKeyAddButton->signal_pressed().connect(sigc::ptr_fun(on_pop_key_add_clicked));
+
+	refBuilder->get_widget("PopAddKeyCancelButton", popAddKeyCancelButton);
+	popAddKeyCancelButton->signal_pressed().connect(sigc::ptr_fun(close_pop_key));
+
+	refBuilder->get_widget("PopAddKeyTimeEntry", popAddKeyTimeEntry);
+	refBuilder->get_widget("PopAddKeyAzimuthEntry", popAddKeyAzimuthEntry);
+	refBuilder->get_widget("PopAddKeyElevationEntry", popAddKeyElevationEntry);
+	refBuilder->get_widget("PopAddKeyRadiusEntry", popAddKeyRadiusEntry);
+	refBuilder->get_widget("PopAddKeyLoopingSwitch", popAddKeyLoopingSwitch);
+	refBuilder->get_widget("PopAddKeyVisibleSwitch", popAddKeyVisibleSwitch);
 
 
 	std::thread(&Interfacer::myMain, interfacer).detach();

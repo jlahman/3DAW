@@ -180,6 +180,7 @@ SoundSource* AnimationPlayer::getSource(MasterSource  *s, double time_s){
 		//end findClosestIndex
 
 		//interp between unless equal
+		//std::cout << "Index Lo : " << index_lo << "\tIndex Hi : " << index_hi << std::endl;
 		if(index_lo == index_hi || (index_hi == -1 && index_lo != -1))
 			instSource->setProperties(s->keyFrameList.at(index_lo)->properties);
 		else
@@ -197,6 +198,7 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 	double time_lo = s->keyFrameList.at(index_lo)->time_s;
 	double time_hi = s->keyFrameList.at(index_hi)->time_s;
 
+
 	Polar3D * position = new Polar3D(1.0, 0.0, 0.0);
 	position->radius = lerp(lo->position->radius, hi->position->radius, time_s, time_lo, time_hi);
 
@@ -206,7 +208,7 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 		angleT = abs(angleT - 360);
 	}
 	//step two
-	if(hi->position->theta < lo->position->theta){
+	else if(hi->position->theta < lo->position->theta){
 		angleT *= -1;
 	}
 	double delta = lerp(0, angleT, time_s, time_lo, time_hi);
@@ -216,6 +218,7 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 	position->phi = lerp(lo->position->phi, hi->position->phi, time_s, time_lo, time_hi);
 
 	double scale = lerp(lo->scale, hi->scale, time_s, time_lo, time_hi);
+	//std::cout << "lo azi : " << lo->position->theta << "\thi azi : " << hi->position->theta << "\tNewPhi : "<< position->theta << std::endl;
 
 	//never deleted
 	//because a lack of foresight
@@ -228,13 +231,20 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 double * AnimationPlayer::interpolateHRIR_linear(double index_a, double index_e, bool left, double * hrirLerped){
 	int lower = (int)index_a;
 	int upper = (int)index_a+1;
-	if(upper > 26)
-		upper = 26;
-	for(int i = 0; i < 200; i++){
-		if(left)
-			hrirLerped[i] = lerp(hrir->hrir_l[lower][(int)index_e][i], hrir->hrir_l[upper][(int)index_e][i], index_a, lower, upper);
-		else
-			hrirLerped[i] = lerp(hrir->hrir_r[lower][(int)index_e][i], hrir->hrir_r[upper][(int)index_e][i], index_a, lower, upper);
+	if(index_a == 0 || index_a == 26){
+		for(int i = 0; i < 200; i++){
+			if(left)
+				hrirLerped[i] =hrir->hrir_l[(int)index_a][(int)index_e][i];
+			else
+				hrirLerped[i] = hrir->hrir_r[(int)index_a][(int)index_e][i];
+		}
+	}else {
+		for(int i = 0; i < 200; i++){
+			if(left)
+				hrirLerped[i] = lerp(hrir->hrir_l[lower][(int)index_e][i], hrir->hrir_l[upper][(int)index_e][i], index_a, lower, upper);
+			else
+				hrirLerped[i] = lerp(hrir->hrir_r[lower][(int)index_e][i], hrir->hrir_r[upper][(int)index_e][i], index_a, lower, upper);
+		}
 	}
 	return hrirLerped;
 }
@@ -244,6 +254,7 @@ void AnimationPlayer::getBuffer(double ** buffer, double ** overflow, int frameS
 	const int convDataSize = length + hrirLength - 1;
 	const int sourceChunkSize = length;
 	double frameTime = frameStart/44100.0;
+	time = frameTime;
 
 	double * audioData;
 

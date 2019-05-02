@@ -46,6 +46,10 @@ std::string SoundSource::getName(){
   return name;
 }
 
+std::string SoundSource::getTrackFilepath(){
+  return track->filepath;
+}
+
 void SoundSource::setName(std::string name){
   this->name = name;
 }

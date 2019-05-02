@@ -48,11 +48,13 @@ int loadAudioData(std::string filepath, int sampleRate, int channels, double ** 
    //open input file and allocate fromat context
    AVFormatContext * pFormatContext = NULL;
    if(avformat_open_input(&pFormatContext, url, NULL, NULL) != 0){
-     fprintf(stderr, "ERROR: couldn't open input file!\n");
+     fprintf(stderr, "ERROR: couldn't open input file! %s\n", url);
+	 return -1;
    }
    //retrieve the audio stream info, used for audio formats that don't have a header
    if(avformat_find_stream_info(pFormatContext, NULL) != 0){
      fprintf(stderr, "ERROR: couldn't find stream info\n");
+	 return -1;
    }
 
    //prepare codec Context

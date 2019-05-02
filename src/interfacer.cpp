@@ -12,8 +12,7 @@ Interfacer::Interfacer()
 Interfacer::~Interfacer()
 {
     //delete members
-    std::cout << "Ending main program. \n"
-              << std::endl;
+    std::cout << "Ending main program. \n" << std::endl;
 }
 
 int Interfacer::myMain()
@@ -57,7 +56,6 @@ int Interfacer::myMain()
 
     for (int i = 0; i < trackList.size(); i++)
     {
-		//delete[] trackList[i]->data;
         delete trackList[i];
     }
 
@@ -355,7 +353,7 @@ void Interfacer::handle_input(std::string input)
         {if(anime->getSources().size() < 1)
 			return;
             anime->addKeyFrame(selectedSource, std::stod(line[2]), new SoundSourceProperties(new Polar3D(1.0, 0.0, 0.0), true, true));
-            std::cout << "Added new KeyFrame at time (ms) \"" << line[2] << "\" successfully." << std::endl;
+            std::cout << "Added new KeyFrame at time \"" << line[2] << "\" successfully." << std::endl;
         }
     }
     else if (line[0] == "list")
@@ -543,6 +541,18 @@ void Interfacer::set_property_keyframe(std::string propertyName, std::string pro
     bool bval = false;
     switch (p)
     {
+	case TIME:
+        //std::cout << "it worked" << std::endl;
+        try
+        {
+            value = (double)std::stod(propertyValue);
+            anime->getSource(selectedSource)->keyFrameList.at(keyFrameSelected)->time_s = value;
+        }
+        catch (const std::invalid_argument &e)
+        {
+            std::cout << "Error setting property: " << SSPNames[p] << " of Key Frame " << keyFrameSelected << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
+        }
+        break;
     case RADIUS:
         std::cout << "it worked" << std::endl;
         try

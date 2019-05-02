@@ -23,6 +23,7 @@ class Interfacer
 
     enum SSPEnums
     {
+		TIME,
         POSITION,
         RADIUS,
         THETA,
@@ -32,20 +33,25 @@ class Interfacer
         VISIBLE,
         END
     };
-    const std::string SSPNames[8] = {"position", "radius", "theta", "phi", "scale", "looping", "visible", "invalid"};
+    const std::string SSPNames[9] = {"time", "position", "radius", "theta", "phi", "scale", "looping", "visible", "invalid"};
 
     void handle_input(std::string line);
 	bool hasTrack(std::string name);
 	int getTrackIndex(std::string name);
 	int getTrackSize();
-	bool pause = true;
 
+	AnimationPlayer *anime;
+
+	bool pause = true;
+	std::string selectedSource = "";
+	std::string selectedComposition = "";
+
+	int keyFrameSelected = 0;
 
     int myMain();
 
   private:
     AudioPlayer ap = AudioPlayer();
-    AnimationPlayer *anime;
     std::vector<Track *> trackList;
 
     const int frameStop = 44100 * 180;
@@ -55,10 +61,7 @@ class Interfacer
     bool animePlay = false;
     bool done = false;
 
-    std::string selectedSource = "";
-    std::string selectedComposition = "";
 
-    int keyFrameSelected = 0;
     double **audioOut = NULL;
     double **overflow = NULL;
 
