@@ -31,6 +31,8 @@ class SoundSource {
    double * getAudioData();
    int getLength();
 
+   std::string getTrackFilepath();
+
    std::string getName();
    void setName(std::string name);
 

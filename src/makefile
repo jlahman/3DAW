@@ -2,7 +2,7 @@ CC=gcc
 CCV=
 CFLAGS= -g -std=c++11
 DEPS = HRIR_Data.h util.h AnimationPlayer.h SoundSource.h Track.h KeyFrame.h AudioPlayer.h interfacer.h
-OBJ = util.o HRIR_Data.o Track.o SoundSource.o AnimationPlayer.o AudioPlayer.o KeyFrame.o interfacer.o main.o 
+OBJ = util.o HRIR_Data.o Track.o SoundSource.o AnimationPlayer.o AudioPlayer.o KeyFrame.o interfacer.o main.o
 LIBS= -lavformat -lavcodec -lswresample -lavutil -lportaudio -lmatio -lstdc++ -lm -lpthread
 LIBS_T= -lavformat -lavcodec -lswresample -lavutil -lmatio -lstdc++ -lm
 
@@ -19,3 +19,4 @@ rwar:
 
 clean:
 	rm -f $(OBJ)
+	g++ gtkmm_example/main.cpp util.cpp HRIR_Data.cpp Track.cpp SoundSource.cpp AnimationPlayer.cpp AudioPlayer.cpp KeyFrame.cpp interfacer.cpp  -o gtkmm_example/test `pkg-config gtkmm-3.0 --cflags --libs` -lavformat -lavcodec -lswresample -lavutil -lportaudio -lmatio -lstdc++ -lm -lpthread

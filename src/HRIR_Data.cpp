@@ -69,7 +69,7 @@ void HRIR_Data::loadHRIRFromMAT(){
 		}
 	}
 	else {
-		fprintf(stdout, "ERROR: Matfile load error");
+		fprintf(stdout, "ERROR: Matfile load error %s\n", filename);
 	}
 }
 

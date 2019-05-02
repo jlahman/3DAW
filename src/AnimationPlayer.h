@@ -18,6 +18,7 @@ struct MasterSource {
   double timeStart_s;
   double timeFinal_s;
   std::vector<KeyFrame*> keyFrameList;
+  bool isVisible = true;
 };
 
 class AnimationPlayer {
@@ -43,6 +44,9 @@ class AnimationPlayer {
     int test_KeyFrames(std::string sourceName);
 
     int setStartTime(std::string sourceName, double time_s);
+
+	double time;
+
 
 
 

@@ -1,9 +1,11 @@
 #include "interfacer.h"
+#include <unistd.h>
+
 
 Interfacer::Interfacer()
 {
     //init members
-	anime = new AnimationPlayer("../../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
+	anime = new AnimationPlayer("../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
     loadHRIR();
     std::cout << "started main program. \n" << std::endl;
 }
@@ -11,8 +13,7 @@ Interfacer::Interfacer()
 Interfacer::~Interfacer()
 {
     //delete members
-    std::cout << "Ending main program. \n"
-              << std::endl;
+    std::cout << "Ending main program. \n" << std::endl;
 }
 
 int Interfacer::myMain()
@@ -43,7 +44,10 @@ int Interfacer::myMain()
 
         while (!done)
         {
-            //TODO: if no-gui, grab input from cin and send to input
+			char cwd[10000];
+			if (getcwd(cwd, sizeof(cwd)) != NULL){}
+				//printf("Current working dir: %s\n", cwd);
+			           //TODO: if no-gui, grab input from cin and send to input
         }
         ap.close();
     }
@@ -74,7 +78,7 @@ void Interfacer::foo()
 {
     while (!done)
     {
-        while (ap.getBufferMax() > ap.buffer_size() && frameCount < frameStop && animePlay)
+        while (ap.getBufferMax() > ap.buffer_size() &&  animePlay)
         {
             int writeLength = (ap.getBufferMax() - ap.buffer_size()) / 2;
 
@@ -160,6 +164,29 @@ void Interfacer::foo()
     }
 }
 
+bool Interfacer::hasTrack(std::string name){
+	for(int i = 0; i < trackList.size(); i++){
+		if(trackList[i]->filepath == name){
+			return true;
+		}
+	}
+	return false;
+}
+
+int Interfacer::getTrackIndex(std::string name){
+	for(int i = 0; i < trackList.size(); i++){
+		if(trackList[i]->filepath == name){
+			return i;
+		}
+	}
+	return -1;
+}
+
+int Interfacer::getTrackSize(){
+	return trackList.size();
+}
+
+
 //from fluentcpp: https://www.fluentcpp.com/2017/04/21/how-to-split-a-string-in-c/
 std::vector<std::string> Interfacer::split(const std::string &s, char delimiter)
 {
@@ -240,7 +267,8 @@ void Interfacer::handle_input(std::string input)
         }
     }
     else if (line[0] == "select")
-    {
+    {if(anime->getSources().size() < 1)
+			return;
         //select
         if (line[1] == "-source" || line[1] == "-s")
         {
@@ -308,6 +336,8 @@ void Interfacer::handle_input(std::string input)
     }
     else if (line[0] == "add")
     {
+
+
         if (line[1] == "-source" || line[1] == "-s")
         {
             if (line.size() == 4)
@@ -321,13 +351,17 @@ void Interfacer::handle_input(std::string input)
             }
         }
         else if (line[1] == "-keyframe" || line[1] == "-k")
-        {
+        {if(anime->getSources().size() < 1)
+			return;
             anime->addKeyFrame(selectedSource, std::stod(line[2]), new SoundSourceProperties(new Polar3D(1.0, 0.0, 0.0), true, true));
-            std::cout << "Added new KeyFrame at time (ms) \"" << line[2] << "\" successfully." << std::endl;
+            std::cout << "Added new KeyFrame at time \"" << line[2] << "\" successfully." << std::endl;
         }
     }
     else if (line[0] == "list")
     {
+		if(anime->getSources().size() < 1)
+			return;
+
         if (line[1] == "-source" || line[1] == "-s")
         {
             std::cout << "\nSources in Composition: " << time << std::endl;
@@ -420,14 +454,18 @@ void Interfacer::handle_input(std::string input)
             if (line[2] == "-property" || line[2] == "-p")
             {
                 if (line[1] == "-source" || line[1] == "-s")
-                {
+                {if(anime->getSources().size() < 1)
+					return;
+
                     //TODO: set source property
                     std::string propertyToEdit = line[3];
                     std::string propertyValNew = line[4];
                     set_property_source(propertyToEdit, propertyValNew);
                 }
                 else if (line[1] == "-keyframe" || line[1] == "-k")
-                {
+                {if(anime->getSources().size() < 1)
+					return;
+
                     std::string propertyToEdit = line[3];
                     std::string propertyValNew = line[4];
                     set_property_keyframe(propertyToEdit, propertyValNew);
@@ -462,6 +500,8 @@ void Interfacer::set_property_source(std::string propertyName, std::string prope
 	}*/
     if (propertyName == "name")
     {
+		printf("Set name to : %s\n", propertyValue.c_str());
+
         anime->getSource(selectedSource)->source->setName(propertyValue);
         selectedSource = propertyValue;
     }
@@ -478,7 +518,13 @@ void Interfacer::set_property_source(std::string propertyName, std::string prope
                       << "start_time"
                       << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
         }
-    }
+    } else if (propertyName == "visible"){
+		//technically treats values other than true as false
+		bool bval = (propertyValue == "T" || propertyValue == "t" || propertyValue == "true" || propertyValue == "TRUE" || propertyValue == "True");
+		anime->getSource(selectedSource)->isVisible = bval;
+		std::cout << bval << " " << propertyValue << " " <<anime->getSource(selectedSource)->isVisible<<std::endl;
+	}
+
     else
     {
         std::cout << "ERROR: Not A source Property!" << std::endl;
@@ -500,6 +546,18 @@ void Interfacer::set_property_keyframe(std::string propertyName, std::string pro
     bool bval = false;
     switch (p)
     {
+	case TIME:
+        //std::cout << "it worked" << std::endl;
+        try
+        {
+            value = (double)std::stod(propertyValue);
+            anime->getSource(selectedSource)->keyFrameList.at(keyFrameSelected)->time_s = value;
+        }
+        catch (const std::invalid_argument &e)
+        {
+            std::cout << "Error setting property: " << SSPNames[p] << " of Key Frame " << keyFrameSelected << " of source \"" << selectedSource << "\": Property Value invalid!" << std::endl;
+        }
+        break;
     case RADIUS:
         std::cout << "it worked" << std::endl;
         try
@@ -601,6 +659,7 @@ void Interfacer::set_property_composition(std::string propertyName, std::string 
         }
     } else if (propertyName == "hrir")
     {
+		std::cout << propertyValue << std::endl;
         loadHRIR(propertyValue);
     }
     else
@@ -616,22 +675,24 @@ int Interfacer::export_final(std::string filename)
 
 //defaults to loading subject 40
 void Interfacer::loadHRIR() {
-    anime->reInitHRIR("../../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
+    anime->reInitHRIR("../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat");
 }
 
 //attempts to load the selected subject, defaults to 40 if not found
-void Interfacer::loadHRIR(std::string _subject) {
+void Interfacer::loadHRIR(std::string subject) {
     std::string filepath;
 	int i = 0;
 	for(i = 0; i < 45; i++){
-		if(_subject == subjects[i]){
+		if(subject == subjects[i]){
 			break;
 		}
 	}
     if(i != 45)
-        filepath = "../../../data/CIPIC_hrtf_database/standard_hrir_database/subject_"+subjects[i]+"/hrir_final.mat";
+        filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_"+subjects[i]+"/hrir_final.mat";
     else
-        filepath = "../../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat";
+        filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat";
+
+		printf( "%s\n", filepath.c_str());
 
     anime->reInitHRIR(filepath);
 }
