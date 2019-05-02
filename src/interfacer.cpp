@@ -1,6 +1,7 @@
 #include "interfacer.h"
 #include <unistd.h>
 
+
 Interfacer::Interfacer()
 {
     //init members
@@ -266,8 +267,7 @@ void Interfacer::handle_input(std::string input)
         }
     }
     else if (line[0] == "select")
-    {
-		if(anime->getSources().size() < 1)
+    {if(anime->getSources().size() < 1)
 			return;
         //select
         if (line[1] == "-source" || line[1] == "-s")
@@ -337,6 +337,7 @@ void Interfacer::handle_input(std::string input)
     else if (line[0] == "add")
     {
 
+
         if (line[1] == "-source" || line[1] == "-s")
         {
             if (line.size() == 4)
@@ -360,6 +361,7 @@ void Interfacer::handle_input(std::string input)
     {
 		if(anime->getSources().size() < 1)
 			return;
+
         if (line[1] == "-source" || line[1] == "-s")
         {
             std::cout << "\nSources in Composition: " << time << std::endl;
@@ -447,7 +449,6 @@ void Interfacer::handle_input(std::string input)
     }
     else if (line[0] == "set")
     {
-
         if (line.size() > 4)
         {
             if (line[2] == "-property" || line[2] == "-p")
@@ -455,6 +456,7 @@ void Interfacer::handle_input(std::string input)
                 if (line[1] == "-source" || line[1] == "-s")
                 {if(anime->getSources().size() < 1)
 					return;
+
                     //TODO: set source property
                     std::string propertyToEdit = line[3];
                     std::string propertyValNew = line[4];
@@ -463,6 +465,7 @@ void Interfacer::handle_input(std::string input)
                 else if (line[1] == "-keyframe" || line[1] == "-k")
                 {if(anime->getSources().size() < 1)
 					return;
+
                     std::string propertyToEdit = line[3];
                     std::string propertyValNew = line[4];
                     set_property_keyframe(propertyToEdit, propertyValNew);
@@ -498,6 +501,7 @@ void Interfacer::set_property_source(std::string propertyName, std::string prope
     if (propertyName == "name")
     {
 		printf("Set name to : %s\n", propertyValue.c_str());
+
         anime->getSource(selectedSource)->source->setName(propertyValue);
         selectedSource = propertyValue;
     }
@@ -520,6 +524,7 @@ void Interfacer::set_property_source(std::string propertyName, std::string prope
 		anime->getSource(selectedSource)->isVisible = bval;
 		std::cout << bval << " " << propertyValue << " " <<anime->getSource(selectedSource)->isVisible<<std::endl;
 	}
+
     else
     {
         std::cout << "ERROR: Not A source Property!" << std::endl;
@@ -688,5 +693,6 @@ void Interfacer::loadHRIR(std::string subject) {
         filepath = "../../data/CIPIC_hrtf_database/standard_hrir_database/subject_040/hrir_final.mat";
 
 		printf( "%s\n", filepath.c_str());
+
     anime->reInitHRIR(filepath);
 }

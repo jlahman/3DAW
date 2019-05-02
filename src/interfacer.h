@@ -61,7 +61,6 @@ class Interfacer
     bool animePlay = false;
     bool done = false;
 
-
     double **audioOut = NULL;
     double **overflow = NULL;
 

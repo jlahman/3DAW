@@ -12,7 +12,6 @@ AnimationPlayer::AnimationPlayer(std::string filepath){
 void AnimationPlayer::reInitHRIR(std::string filepath){
     if(hrir != NULL)
         delete hrir;
-	//printf("%s\n", filepath );
     hrir = new HRIR_Data(filepath);
 }
 
@@ -180,7 +179,6 @@ SoundSource* AnimationPlayer::getSource(MasterSource  *s, double time_s){
 		//end findClosestIndex
 
 		//interp between unless equal
-		//std::cout << "Index Lo : " << index_lo << "\tIndex Hi : " << index_hi << std::endl;
 		if(index_lo == index_hi || (index_hi == -1 && index_lo != -1))
 			instSource->setProperties(s->keyFrameList.at(index_lo)->properties);
 		else
@@ -197,8 +195,7 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 
 	double time_lo = s->keyFrameList.at(index_lo)->time_s;
 	double time_hi = s->keyFrameList.at(index_hi)->time_s;
-
-
+  
 	Polar3D * position = new Polar3D(1.0, 0.0, 0.0);
 	position->radius = lerp(lo->position->radius, hi->position->radius, time_s, time_lo, time_hi);
 
@@ -218,7 +215,6 @@ SoundSourceProperties * AnimationPlayer::interpolateProperties(MasterSource * s,
 	position->phi = lerp(lo->position->phi, hi->position->phi, time_s, time_lo, time_hi);
 
 	double scale = lerp(lo->scale, hi->scale, time_s, time_lo, time_hi);
-	//std::cout << "lo azi : " << lo->position->theta << "\thi azi : " << hi->position->theta << "\tNewPhi : "<< position->theta << std::endl;
 
 	//never deleted
 	//because a lack of foresight

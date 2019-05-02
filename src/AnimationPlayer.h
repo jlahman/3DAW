@@ -49,6 +49,7 @@ class AnimationPlayer {
 
 
 
+
   private:
     //should AnimationPlayer just have a list of sound source properties, as thats the only thing being animated?
     //    a audioprocessor would querry properties at a timestamp and process the audio tracks accordingly,
