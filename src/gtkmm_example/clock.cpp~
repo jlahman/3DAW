@@ -51,7 +51,7 @@ bool Clock::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
   cr->restore();
   cr->arc(0, 0, m_radius, 0, 2 * M_PI);
   cr->save();
-  cr->set_source_rgba(1.0, 1.0, 1.0, 0.0);
+  cr->set_source_rgba(1.0, 1.0, 1.0, 0.8);
   cr->fill_preserve();
   cr->restore();
   cr->stroke_preserve();
